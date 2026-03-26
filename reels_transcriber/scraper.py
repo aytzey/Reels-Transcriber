@@ -21,11 +21,14 @@ cookies and TLS state consistent across the session.
 
 from __future__ import annotations
 
+import logging
 import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
+
+_log = logging.getLogger("reels_transcriber.scraper")
 
 
 # ---------------------------------------------------------------------------
@@ -52,51 +55,50 @@ def download_single_reel(
     m = re.search(r"/(?:reel|p)/([A-Za-z0-9_-]+)", reel_url)
     shortcode = m.group(1) if m else "unknown"
 
+    browser = None
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        context = browser.new_context(ignore_https_errors=True)
-        page = context.new_page()
-
-        captured: list[dict] = []
-
-        def _on_response(resp):
-            url = resp.url
-            if "/api/" in url and "google" not in url and "sentry" not in url:
-                try:
-                    captured.append({"url": url, "body": resp.json()})
-                except Exception:
-                    pass
-
-        page.on("response", _on_response)
-
-        page.goto("https://igram.world/en1/", timeout=30_000)
-        page.wait_for_selector("#search-form-input", timeout=15_000)
-        page.locator("#search-form-input").fill(reel_url)
-
-        with page.expect_response(
-            lambda r: "convert" in r.url, timeout=20_000
-        ):
-            page.keyboard.press("Enter")
-
-        proxy_url = _find_proxy_url(captured)
-        if not proxy_url:
-            browser.close()
-            return None
-
         try:
-            resp = context.request.get(proxy_url, timeout=60_000)
-            if resp.status != 200:
-                browser.close()
+            browser = pw.chromium.launch(headless=True)
+            context = browser.new_context(ignore_https_errors=True)
+            page = context.new_page()
+
+            captured: list[dict] = []
+
+            def _on_response(resp):
+                url = resp.url
+                if "/api/" in url and "google" not in url and "sentry" not in url:
+                    try:
+                        captured.append({"url": url, "body": resp.json()})
+                    except Exception:
+                        pass
+
+            page.on("response", _on_response)
+
+            page.goto("https://igram.world/en1/", timeout=30_000)
+            page.wait_for_selector("#search-form-input", timeout=15_000)
+            page.locator("#search-form-input").fill(reel_url)
+
+            with page.expect_response(
+                lambda r: "convert" in r.url, timeout=20_000
+            ):
+                page.keyboard.press("Enter")
+
+            proxy_url = _find_proxy_url(captured)
+            if not proxy_url:
+                _log.warning("No proxy URL found for reel %s", shortcode)
                 return None
-            body = resp.body()
-        except Exception:
-            browser.close()
+
+            body = _download_with_retry(context, proxy_url)
+            if not body or len(body) < 1_000:
+                _log.warning("Download too small or empty for reel %s", shortcode)
+                return None
+
+        except Exception as exc:
+            _log.error("Failed to download reel %s: %s", shortcode, exc)
             return None
-
-        browser.close()
-
-    if len(body) < 1_000:
-        return None
+        finally:
+            if browser:
+                browser.close()
 
     path = out_dir / f"{shortcode}.mp4"
     path.write_bytes(body)
@@ -130,85 +132,93 @@ def scrape_and_download(
     out_dir.mkdir(parents=True)
 
     t0 = time.monotonic()
+    browser = None
 
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        context = browser.new_context(ignore_https_errors=True)
-        page = context.new_page()
+        try:
+            browser = pw.chromium.launch(headless=True)
+            context = browser.new_context(ignore_https_errors=True)
+            page = context.new_page()
 
-        captured: list[dict] = []
+            captured: list[dict] = []
 
-        def _on_response(resp):
-            url = resp.url
-            if "/api/" in url and "google" not in url and "sentry" not in url:
-                try:
-                    captured.append({"url": url, "body": resp.json()})
-                except Exception:
-                    pass
+            def _on_response(resp):
+                url = resp.url
+                if "/api/" in url and "google" not in url and "sentry" not in url:
+                    try:
+                        captured.append({"url": url, "body": resp.json()})
+                    except Exception:
+                        pass
 
-        page.on("response", _on_response)
+            page.on("response", _on_response)
 
-        # -- 1. Fetch post list ----------------------------------------
-        if progress_cb:
-            progress_cb(0, desc=f"Fetching @{username} profile...")
+            # -- 1. Fetch post list ----------------------------------------
+            if progress_cb:
+                progress_cb(0, desc=f"Fetching @{username} profile...")
 
-        page.goto("https://igram.world/en1/", timeout=30_000)
-        page.wait_for_selector("#search-form-input", timeout=15_000)
-        page.locator("#search-form-input").fill(
-            f"https://www.instagram.com/{username}/"
-        )
-
-        # Wait for BOTH posts and userInfo API responses instead of blind timeout
-        with page.expect_response(
-            lambda r: "posts" in r.url.lower() or "userInfo" in r.url,
-            timeout=20_000,
-        ):
-            page.keyboard.press("Enter")
-
-        # Give a small window for the second response to arrive
-        page.wait_for_timeout(3_000)
-
-        all_edges: list[dict] = []
-        user_info: dict | None = None
-
-        for r in captured:
-            if "posts" in r["url"].lower():
-                all_edges.extend(r["body"].get("result", {}).get("edges", []))
-            if "userInfo" in r["url"]:
-                try:
-                    user_info = r["body"]["result"][0]["user"]
-                except (KeyError, IndexError, TypeError):
-                    pass
-
-        if not all_edges:
-            browser.close()
-            return [], user_info
-
-        # -- Pagination -------------------------------------------------
-        total_count = _get_total_count(captured)
-
-        if total_count and len(all_edges) < total_count:
-            _paginate(page, captured, all_edges, total_count, progress_cb)
-
-        # -- Filter video reels -----------------------------------------
-        reels = _extract_reels(all_edges)
-        if not reels:
-            browser.close()
-            return [], user_info
-
-        if progress_cb:
-            elapsed = time.monotonic() - t0
-            progress_cb(
-                0.15,
-                desc=f"Found {len(reels)} reels ({elapsed:.0f}s). Downloading...",
+            page.goto("https://igram.world/en1/", timeout=30_000)
+            page.wait_for_selector("#search-form-input", timeout=15_000)
+            page.locator("#search-form-input").fill(
+                f"https://www.instagram.com/{username}/"
             )
 
-        # -- 2 & 3. Convert + download each reel -----------------------
-        video_infos = _download_reels(
-            reels, page, context, captured, out_dir, progress_cb, t0
-        )
+            with page.expect_response(
+                lambda r: "posts" in r.url.lower() or "userInfo" in r.url,
+                timeout=20_000,
+            ):
+                page.keyboard.press("Enter")
 
-        browser.close()
+            # Give a small window for the second response to arrive
+            page.wait_for_timeout(3_000)
+
+            all_edges: list[dict] = []
+            user_info: dict | None = None
+
+            for r in captured:
+                if "posts" in r["url"].lower():
+                    edges = r["body"].get("result", {}).get("edges", [])
+                    if isinstance(edges, list):
+                        all_edges.extend(edges)
+                if "userInfo" in r["url"]:
+                    try:
+                        user_info = r["body"]["result"][0]["user"]
+                    except (KeyError, IndexError, TypeError):
+                        pass
+
+            if not all_edges:
+                _log.info("No posts found for @%s", username)
+                return [], user_info
+
+            # -- Pagination ------------------------------------------------
+            total_count = _get_total_count(captured)
+
+            if total_count and len(all_edges) < total_count:
+                _paginate(page, captured, all_edges, total_count, progress_cb)
+
+            # -- Filter video reels ----------------------------------------
+            reels = _extract_reels(all_edges)
+            if not reels:
+                _log.info("No video reels found for @%s (found %d posts)", username, len(all_edges))
+                return [], user_info
+
+            if progress_cb:
+                elapsed = time.monotonic() - t0
+                progress_cb(
+                    0.15,
+                    desc=f"Found {len(reels)} reels ({elapsed:.0f}s). Downloading...",
+                )
+
+            # -- 2 & 3. Convert + download each reel -----------------------
+            video_infos = _download_reels(
+                reels, page, context, captured, out_dir, progress_cb, t0
+            )
+
+        except Exception as exc:
+            _log.error("Scraping failed for @%s: %s", username, exc)
+            return [], None
+        finally:
+            if browser:
+                browser.close()
 
     return video_infos, user_info
 
@@ -217,10 +227,27 @@ def scrape_and_download(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+def _download_with_retry(context, url: str, retries: int = 3, timeout: int = 60_000) -> bytes | None:
+    """Download a URL through the browser context with retry + backoff."""
+    for attempt in range(retries):
+        try:
+            resp = context.request.get(url, timeout=timeout)
+            if resp.status == 200:
+                return resp.body()
+            _log.warning("Download returned status %d (attempt %d/%d)", resp.status, attempt + 1, retries)
+        except Exception as exc:
+            _log.warning("Download failed (attempt %d/%d): %s", attempt + 1, retries, exc)
+        if attempt < retries - 1:
+            time.sleep(2 ** attempt)
+    return None
+
+
 def _get_total_count(captured: list[dict]) -> int | None:
     for r in captured:
         if "posts" in r["url"].lower():
-            return r["body"].get("result", {}).get("count")
+            count = r["body"].get("result", {}).get("count")
+            if isinstance(count, int):
+                return count
     return None
 
 
@@ -249,11 +276,12 @@ def _paginate(page, captured, all_edges, total_count, progress_cb):
 
         page.wait_for_timeout(8_000)
 
-        existing_ids = {e["node"]["id"] for e in all_edges}
+        existing_ids = {e.get("node", {}).get("id") for e in all_edges}
         for r in captured:
             if "posts" in r["url"].lower():
                 for edge in r["body"].get("result", {}).get("edges", []):
-                    if edge["node"]["id"] not in existing_ids:
+                    node_id = edge.get("node", {}).get("id")
+                    if node_id and node_id not in existing_ids:
                         all_edges.append(edge)
 
         if len(all_edges) >= total_count or len(all_edges) == prev:
@@ -265,11 +293,13 @@ def _extract_reels(edges: list[dict]) -> list[dict]:
     reels: list[dict] = []
     for edge in edges:
         node = edge.get("node", {})
+        if not isinstance(node, dict):
+            continue
         if not (node.get("is_video") and node.get("video_url")):
             continue
         caption = ""
         cap = node.get("edge_media_to_caption", {}).get("edges", [])
-        if cap:
+        if cap and isinstance(cap, list):
             caption = cap[0].get("node", {}).get("text", "")[:200]
         reels.append({
             "shortcode": node.get("shortcode", ""),
@@ -284,6 +314,7 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb, t0):
     """For each reel, resolve a proxy CDN URL and download the video."""
     video_infos: list[dict] = []
     total = len(reels)
+    consecutive_failures = 0
 
     for i, reel in enumerate(reels):
         sc = reel["shortcode"]
@@ -325,7 +356,12 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb, t0):
                     lambda r: "convert" in r.url, timeout=15_000
                 ):
                     page.keyboard.press("Enter")
-            except Exception:
+            except Exception as exc:
+                _log.warning("Skipping reel %s: convert request failed: %s", sc, exc)
+                consecutive_failures += 1
+                if consecutive_failures >= 5:
+                    _log.error("Too many consecutive failures, stopping download")
+                    break
                 continue
 
         # Small grace period for the response to be parsed
@@ -333,25 +369,32 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb, t0):
 
         proxy_url = _find_proxy_url(captured)
         if not proxy_url:
+            _log.warning("No proxy URL for reel %s", sc)
+            consecutive_failures += 1
+            if consecutive_failures >= 5:
+                _log.error("Too many consecutive failures, stopping download")
+                break
             continue
 
-        # Download through the browser context (inherits cookies + TLS state)
-        try:
-            resp = context.request.get(proxy_url, timeout=60_000)
-            if resp.status == 200:
-                body = resp.body()
-                if len(body) > 1_000:
-                    path = out_dir / f"{sc}.mp4"
-                    path.write_bytes(body)
-                    video_infos.append({
-                        "path": str(path),
-                        "shortcode": sc,
-                        "date": date_str,
-                        "caption": reel.get("caption", ""),
-                        "url": reel_url,
-                    })
-        except Exception:
-            pass
+        # Download through the browser context with retry
+        body = _download_with_retry(context, proxy_url)
+        if body and len(body) > 1_000:
+            path = out_dir / f"{sc}.mp4"
+            path.write_bytes(body)
+            video_infos.append({
+                "path": str(path),
+                "shortcode": sc,
+                "date": date_str,
+                "caption": reel.get("caption", ""),
+                "url": reel_url,
+            })
+            consecutive_failures = 0
+        else:
+            _log.warning("Download failed or too small for reel %s", sc)
+            consecutive_failures += 1
+            if consecutive_failures >= 5:
+                _log.error("Too many consecutive failures, stopping download")
+                break
 
     return video_infos
 
@@ -359,8 +402,10 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb, t0):
 def _find_proxy_url(captured: list[dict]) -> str | None:
     """Extract the first video proxy URL from captured API responses."""
     for r in captured:
-        if "convert" in r["url"]:
-            urls = r["body"].get("url", [])
+        if "convert" in r.get("url", ""):
+            urls = r.get("body", {}).get("url", [])
             if urls and isinstance(urls, list):
-                return urls[0].get("url", "")
+                url = urls[0].get("url", "") if isinstance(urls[0], dict) else ""
+                if url:
+                    return url
     return None

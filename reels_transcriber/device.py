@@ -7,11 +7,14 @@ or a CPU-only CI runner.
 
 Device priority: CUDA > MPS > CPU
 
+Batch size is computed dynamically from available VRAM — not hardcoded per GPU.
+The formula reserves memory for model weights + OS overhead and allocates the
+rest to inference batches.  This means it auto-scales correctly on any GPU
+from a 4 GB GTX 1650 to an 80 GB A100.
+
 Key design decisions:
 - MPS uses float32 because float16 matmuls can produce NaN on certain
   attention patterns in Whisper's cross-attention layers (PyTorch ≤2.3).
-- Batch size scales with available VRAM on CUDA. MPS uses unified memory
-  shared with the OS, so we stay conservative at 8.
 - SDPA (Scaled Dot-Product Attention) is used everywhere — it's the PyTorch-native
   equivalent of Flash Attention 2 and works across all three backends.
 """
@@ -43,23 +46,40 @@ def get_dtype(device: str) -> torch.dtype:
 
 
 def get_batch_size(device: str) -> int:
-    """Return a safe chunk batch size based on available accelerator memory.
+    """Auto-compute optimal batch size from available GPU memory.
 
-    Whisper's chunked pipeline processes ``batch_size`` 30-second segments in
-    parallel.  Larger batches saturate the GPU better but risk OOM on smaller
-    cards.  These thresholds are empirically tuned for Whisper Large-v3
-    (~3 GB model weights in float16).
+    Each 30-second Whisper chunk needs ~550 MB VRAM in float16 (mel features,
+    encoder/decoder activations, KV cache, intermediate tensors).  We reserve
+    ~4 GB for model weights + OS/driver overhead, then fill the rest.
+
+    Clamps to [1, 24] to stay safe across all hardware.
     """
     if device.startswith("cuda"):
-        mem = torch.cuda.get_device_properties(0).total_memory
-        if mem >= 16 * 1024**3:      # A100 / 4090 / 3090
-            return 24
-        if mem >= 8 * 1024**3:       # 3060 12 GB / 4070
-            return 16
-        return 8                      # 8 GB cards
+        idx = int(device.split(":")[-1]) if ":" in device else 0
+        total_mem = torch.cuda.get_device_properties(idx).total_memory
+        free_mem = total_mem - 4 * 1024**3  # reserve ~4 GB for model + overhead
+        if free_mem <= 0:
+            return 1
+        chunk_cost = 550 * 1024**2  # ~550 MB per batch slot in fp16
+        batch = int(free_mem // chunk_cost)
+        return max(1, min(batch, 24))
+
     if device == "mps":
-        return 8   # unified memory — shared with OS
-    return 4        # CPU fallback
+        # Apple unified memory — query total system RAM, use 25% for batching
+        try:
+            import psutil
+            total_ram = psutil.virtual_memory().total
+        except ImportError:
+            # psutil not available — safe default
+            total_ram = 8 * 1024**3
+        usable = total_ram * 0.25 - 4 * 1024**3  # reserve model + OS
+        if usable <= 0:
+            return 2
+        chunk_cost = 1100 * 1024**2  # fp32 chunks use ~2x memory vs fp16
+        batch = int(usable // chunk_cost)
+        return max(2, min(batch, 12))
+
+    return 2  # CPU fallback — RAM is plentiful but inference is slow
 
 
 def empty_cache(device: str) -> None:
@@ -73,7 +93,8 @@ def empty_cache(device: str) -> None:
 def device_summary(device: str) -> str:
     """Return a human-readable string describing the active device."""
     if device.startswith("cuda"):
-        props = torch.cuda.get_device_properties(0)
+        idx = int(device.split(":")[-1]) if ":" in device else 0
+        props = torch.cuda.get_device_properties(idx)
         vram = props.total_memory / 1024**3
         return f"{props.name} ({vram:.0f} GB)"
     if device == "mps":
