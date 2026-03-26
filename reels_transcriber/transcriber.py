@@ -4,9 +4,10 @@ Insanely-fast Whisper inference engine with hardware-aware batching.
 Technique adapted from https://github.com/Vaibhavs10/insanely-fast-whisper:
 - HuggingFace Transformers ASR pipeline with Flash Attention 2 / SDPA
 - float16 precision on CUDA for tensor core acceleration
-- Aggressive batching of 30-second chunks (batch_size=24)
+- Auto-scaled batching of 30-second chunks from available VRAM
 - Stride overlap between chunks for seamless boundaries
 - Batched multi-file processing (all files in a single pipeline pass)
+- Automatic OOM recovery with batch size halving
 
 Pipeline: video -> parallel ffmpeg extraction -> batched ASR -> text
 """
@@ -50,6 +51,8 @@ MODEL_NAME = MODEL_DISTIL  # default to fast model
 _pipe = None
 _current_model = None
 _lock = threading.Lock()
+
+_log_t = _log.getLogger("reels_transcriber.transcriber")
 
 
 def _detect_attn_impl() -> str:
@@ -115,24 +118,35 @@ def load_model(model_name: str | None = None):
 # ---------------------------------------------------------------------------
 
 def _extract_audio(video_path: str) -> str:
-    """Convert any media file to 16 kHz mono WAV via ffmpeg."""
+    """Convert any media file to 16 kHz mono WAV via ffmpeg.
+
+    Returns the WAV path on success, or the original path as a fallback
+    so the pipeline can still attempt to read it.
+    """
     wav = video_path.rsplit(".", 1)[0] + ".wav"
     if os.path.exists(wav):
         return wav
-    subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-threads", "0",
-            "-i", video_path,
-            "-vn",
-            "-acodec", "pcm_s16le",
-            "-ar", "16000",
-            "-ac", "1",
-            wav,
-        ],
-        capture_output=True,
-        timeout=120,
-    )
+    try:
+        result = subprocess.run(
+            [
+                "ffmpeg", "-y",
+                "-threads", "0",
+                "-i", video_path,
+                "-vn",
+                "-acodec", "pcm_s16le",
+                "-ar", "16000",
+                "-ac", "1",
+                wav,
+            ],
+            capture_output=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            _log_t.warning("ffmpeg failed for %s: %s", video_path, result.stderr[:200])
+    except subprocess.TimeoutExpired:
+        _log_t.warning("ffmpeg timed out for %s", video_path)
+    except FileNotFoundError:
+        _log_t.error("ffmpeg not found — install ffmpeg to enable audio extraction")
     return wav if os.path.exists(wav) else video_path
 
 
@@ -159,7 +173,8 @@ def _extract_all_audio(
             idx = futures[future]
             try:
                 audio_paths[idx] = future.result()
-            except Exception:
+            except Exception as exc:
+                _log_t.warning("Audio extraction failed for %s: %s", paths[idx], exc)
                 audio_paths[idx] = paths[idx]
             done += 1
             if progress_cb:
@@ -167,6 +182,53 @@ def _extract_all_audio(
                 progress_cb(pct, desc=f"Extracting audio ({done}/{total})...")
 
     return [p or paths[i] for i, p in enumerate(audio_paths)]
+
+
+# ---------------------------------------------------------------------------
+# OOM-safe inference with automatic batch size halving
+# ---------------------------------------------------------------------------
+
+def _run_inference(pipe, audio_paths: list[str], batch_size: int, generate_kwargs: dict):
+    """Run the ASR pipeline with automatic OOM recovery.
+
+    If CUDA runs out of memory, halves the batch_size and retries (up to
+    3 times).  This makes the pipeline resilient across GPUs without manual
+    tuning — a 4 GB card will just use a smaller batch automatically.
+    """
+    current_bs = batch_size
+    last_error = None
+
+    for attempt in range(4):
+        try:
+            empty_cache(DEVICE)
+            with torch.inference_mode():
+                outputs = pipe(
+                    audio_paths,
+                    chunk_length_s=30,
+                    stride_length_s=(6, 2),
+                    batch_size=current_bs,
+                    generate_kwargs=generate_kwargs,
+                    return_timestamps=True,
+                )
+            return outputs
+        except RuntimeError as exc:
+            if "out of memory" in str(exc).lower() and current_bs > 1:
+                last_error = exc
+                old_bs = current_bs
+                current_bs = max(1, current_bs // 2)
+                _log_t.warning(
+                    "OOM at batch_size=%d, retrying with %d (attempt %d/3)",
+                    old_bs, current_bs, attempt + 1,
+                )
+                empty_cache(DEVICE)
+                continue
+            raise
+        except Exception:
+            raise
+
+    raise RuntimeError(
+        f"Inference failed after 4 OOM retries (last batch_size=1): {last_error}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -184,15 +246,18 @@ def transcribe(
     """Transcribe a batch of video/audio files using insanely-fast-whisper technique.
 
     1. Extract audio from all files in parallel (threaded ffmpeg).
-    2. Run batched Whisper inference on GPU with all files passed to the
-       pipeline simultaneously for maximum throughput.
+    2. Run batched Whisper inference on GPU with OOM auto-recovery.
 
     Key optimizations (from insanely-fast-whisper):
     - torch.inference_mode() for faster inference (no grad tracking)
     - chunk_length_s=30 with stride_length_s=(6, 2) for overlapping chunks
-    - Aggressive batch_size for maximum GPU utilization
+    - Auto-scaled batch_size for maximum GPU utilization
     - All files processed in a single pipeline pass (batched dataset mode)
+    - Automatic batch_size halving on CUDA OOM
     """
+    if not file_infos:
+        return []
+
     pipe = load_model(model_name)
     lang = None if language == "auto" else language
 
@@ -209,43 +274,37 @@ def transcribe(
         file_infos, progress_cb, progress_start, extract_end
     )
 
-    # Phase 2: GPU inference — insanely-fast-whisper batched approach
+    # Phase 2: GPU inference — insanely-fast-whisper batched approach with OOM safety
     infer_start = extract_end
     infer_range = progress_end - infer_start
 
     if progress_cb:
-        progress_cb(infer_start, desc=f"Transcribing {total} files (batched)...")
-
-    # Process all files in a single batched pipeline pass.
-    # torch.inference_mode() disables autograd entirely — faster than no_grad.
-    with torch.inference_mode():
-        raw_outputs = pipe(
-            audio_paths,
-            chunk_length_s=30,
-            stride_length_s=(6, 2),
-            batch_size=BATCH_SIZE,
-            generate_kwargs=generate_kwargs,
-            return_timestamps=True,
+        progress_cb(
+            infer_start,
+            desc=f"Transcribing {total} file{'s' if total > 1 else ''} (batch_size={BATCH_SIZE})...",
         )
 
-    # Build result list
-    results: list[dict] = []
+    raw_outputs = _run_inference(pipe, audio_paths, BATCH_SIZE, generate_kwargs)
 
     # pipe() returns a single dict for 1 input, list of dicts for multiple
     if isinstance(raw_outputs, dict):
         raw_outputs = [raw_outputs]
 
-    for i, (info, out) in enumerate(zip(file_infos, raw_outputs)):
+    # Build result list with per-file error isolation
+    results: list[dict] = []
+    for i, info in enumerate(file_infos):
         if progress_cb:
             pct = infer_start + infer_range * ((i + 1) / total)
             elapsed = time.monotonic() - t0
             progress_cb(pct, desc=f"Processing results ({i + 1}/{total}, {elapsed:.0f}s)")
 
         try:
-            text = out["text"].strip()
-            chunks = out.get("chunks", [])
-        except Exception as exc:
-            text = f"[ERROR: {exc}]"
+            out = raw_outputs[i]
+            text = out.get("text", "").strip() if isinstance(out, dict) else ""
+            chunks = out.get("chunks", []) if isinstance(out, dict) else []
+        except (IndexError, AttributeError) as exc:
+            _log_t.warning("Result parsing failed for file %d: %s", i, exc)
+            text = ""
             chunks = []
 
         results.append({
@@ -258,11 +317,16 @@ def transcribe(
             "chunks": [
                 {"timestamp": c.get("timestamp"), "text": c.get("text", "")}
                 for c in chunks
+                if isinstance(c, dict)
             ],
         })
 
     elapsed = time.monotonic() - t0
     if progress_cb:
-        progress_cb(progress_end, desc=f"Done ({elapsed:.0f}s total)")
+        avg = elapsed / total if total else 0
+        progress_cb(
+            progress_end,
+            desc=f"Done — {total} file{'s' if total > 1 else ''} in {elapsed:.0f}s ({avg:.1f}s/file)",
+        )
 
     return results
