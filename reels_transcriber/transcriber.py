@@ -1,14 +1,14 @@
 """
-Whisper Large-v3 inference engine with hardware-aware batching.
+Insanely-fast Whisper inference engine with hardware-aware batching.
 
-Pipeline: video -> parallel ffmpeg extraction -> chunked batched ASR -> text
+Technique adapted from https://github.com/Vaibhavs10/insanely-fast-whisper:
+- HuggingFace Transformers ASR pipeline with Flash Attention 2 / SDPA
+- float16 precision on CUDA for tensor core acceleration
+- Aggressive batching of 30-second chunks (batch_size=24)
+- Stride overlap between chunks for seamless boundaries
+- Batched multi-file processing (all files in a single pipeline pass)
 
-Audio extraction runs in parallel across CPU cores before transcription
-begins.  Whisper processes 30-second chunks in batches on the GPU.
-
-Attention backend selection:
-- Flash Attention 2 (if ``flash-attn`` is installed and CUDA sm_80+)
-- SDPA fallback (PyTorch-native, works everywhere)
+Pipeline: video -> parallel ffmpeg extraction -> batched ASR -> text
 """
 
 from __future__ import annotations
@@ -36,18 +36,28 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Callable
 
+import torch
 from transformers import pipeline as hf_pipeline
 
 from .device import DEVICE, DTYPE, BATCH_SIZE, empty_cache
 
-MODEL_NAME = "openai/whisper-large-v3"
+# Model options — distil-large-v3 is ~6x faster than large-v3 with similar quality.
+# Follows insanely-fast-whisper's recommendation.
+MODEL_DISTIL = "distil-whisper/distil-large-v3"
+MODEL_LARGE = "openai/whisper-large-v3"
+MODEL_NAME = MODEL_DISTIL  # default to fast model
 
 _pipe = None
+_current_model = None
 _lock = threading.Lock()
 
 
 def _detect_attn_impl() -> str:
-    """Pick the best available attention implementation."""
+    """Pick the best available attention implementation.
+
+    Matches insanely-fast-whisper: flash_attention_2 on supported CUDA GPUs,
+    SDPA fallback everywhere else (equivalent to BetterTransformer).
+    """
     if not DEVICE.startswith("cuda"):
         return "sdpa"
     try:
@@ -57,23 +67,46 @@ def _detect_attn_impl() -> str:
         return "sdpa"
 
 
-def load_model():
-    """Eagerly load the Whisper pipeline.  Safe to call multiple times."""
-    global _pipe
-    if _pipe is not None:
+def load_model(model_name: str | None = None):
+    """Eagerly load the Whisper pipeline. Safe to call multiple times.
+
+    Uses insanely-fast-whisper technique:
+    - low_cpu_mem_usage for faster loading
+    - Flash Attention 2 / SDPA for optimized attention
+    - float16 on CUDA for tensor core acceleration
+    """
+    global _pipe, _current_model
+    target = model_name or MODEL_NAME
+
+    if _pipe is not None and _current_model == target:
         return _pipe
+
     with _lock:
-        if _pipe is None:
-            attn = _detect_attn_impl()
-            _pipe = hf_pipeline(
-                "automatic-speech-recognition",
-                model=MODEL_NAME,
-                torch_dtype=DTYPE,
-                device=DEVICE,
-                model_kwargs={"attn_implementation": attn},
-            )
+        if _pipe is not None and _current_model == target:
+            return _pipe
+
+        # Release old model memory before loading new one
+        if _pipe is not None:
+            del _pipe
+            _pipe = None
+            _current_model = None
             empty_cache(DEVICE)
-            print(f"  Attention: {attn}")
+
+        attn = _detect_attn_impl()
+        _pipe = hf_pipeline(
+            "automatic-speech-recognition",
+            model=target,
+            torch_dtype=DTYPE,
+            device=DEVICE,
+            model_kwargs={
+                "attn_implementation": attn,
+                "low_cpu_mem_usage": True,
+            },
+        )
+        _current_model = target
+        empty_cache(DEVICE)
+        print(f"  Model    : {target}")
+        print(f"  Attention: {attn}")
     return _pipe
 
 
@@ -137,7 +170,7 @@ def _extract_all_audio(
 
 
 # ---------------------------------------------------------------------------
-# Transcription
+# Transcription — insanely-fast-whisper technique
 # ---------------------------------------------------------------------------
 
 def transcribe(
@@ -146,13 +179,21 @@ def transcribe(
     progress_cb: Callable | None = None,
     progress_start: float = 0.0,
     progress_end: float = 1.0,
+    model_name: str | None = None,
 ) -> list[dict]:
-    """Transcribe a batch of video/audio files.
+    """Transcribe a batch of video/audio files using insanely-fast-whisper technique.
 
     1. Extract audio from all files in parallel (threaded ffmpeg).
-    2. Run Whisper inference on GPU (each file chunked + batched internally).
+    2. Run batched Whisper inference on GPU with all files passed to the
+       pipeline simultaneously for maximum throughput.
+
+    Key optimizations (from insanely-fast-whisper):
+    - torch.inference_mode() for faster inference (no grad tracking)
+    - chunk_length_s=30 with stride_length_s=(6, 2) for overlapping chunks
+    - Aggressive batch_size for maximum GPU utilization
+    - All files processed in a single pipeline pass (batched dataset mode)
     """
-    pipe = load_model()
+    pipe = load_model(model_name)
     lang = None if language == "auto" else language
 
     generate_kwargs: dict = {"task": "transcribe"}
@@ -168,28 +209,39 @@ def transcribe(
         file_infos, progress_cb, progress_start, extract_end
     )
 
-    # Phase 2: GPU inference
-    results: list[dict] = []
+    # Phase 2: GPU inference — insanely-fast-whisper batched approach
     infer_start = extract_end
     infer_range = progress_end - infer_start
 
-    for i, info in enumerate(file_infos):
-        elapsed = time.monotonic() - t0
+    if progress_cb:
+        progress_cb(infer_start, desc=f"Transcribing {total} files (batched)...")
+
+    # Process all files in a single batched pipeline pass.
+    # torch.inference_mode() disables autograd entirely — faster than no_grad.
+    with torch.inference_mode():
+        raw_outputs = pipe(
+            audio_paths,
+            chunk_length_s=30,
+            stride_length_s=(6, 2),
+            batch_size=BATCH_SIZE,
+            generate_kwargs=generate_kwargs,
+            return_timestamps=True,
+        )
+
+    # Build result list
+    results: list[dict] = []
+
+    # pipe() returns a single dict for 1 input, list of dicts for multiple
+    if isinstance(raw_outputs, dict):
+        raw_outputs = [raw_outputs]
+
+    for i, (info, out) in enumerate(zip(file_infos, raw_outputs)):
         if progress_cb:
-            pct = infer_start + infer_range * (i / total)
-            progress_cb(
-                pct,
-                desc=f"Transcribing {i + 1}/{total}  ({elapsed:.0f}s elapsed)",
-            )
+            pct = infer_start + infer_range * ((i + 1) / total)
+            elapsed = time.monotonic() - t0
+            progress_cb(pct, desc=f"Processing results ({i + 1}/{total}, {elapsed:.0f}s)")
 
         try:
-            out = pipe(
-                audio_paths[i],
-                chunk_length_s=30,
-                batch_size=BATCH_SIZE,
-                generate_kwargs=generate_kwargs,
-                return_timestamps=True,
-            )
             text = out["text"].strip()
             chunks = out.get("chunks", [])
         except Exception as exc:

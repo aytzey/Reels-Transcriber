@@ -47,18 +47,20 @@ def get_batch_size(device: str) -> int:
 
     Whisper's chunked pipeline processes ``batch_size`` 30-second segments in
     parallel.  Larger batches saturate the GPU better but risk OOM on smaller
-    cards.  These thresholds are empirically tuned for Whisper Large-v3
-    (~3 GB model weights in float16).
+    cards.  These thresholds follow insanely-fast-whisper defaults (batch_size=24)
+    and are tuned for Whisper Large-v3 / distil-large-v3 in float16.
     """
     if device.startswith("cuda"):
         mem = torch.cuda.get_device_properties(0).total_memory
         if mem >= 16 * 1024**3:      # A100 / 4090 / 3090
             return 24
-        if mem >= 8 * 1024**3:       # 3060 12 GB / 4070
+        if mem >= 10 * 1024**3:      # 3060 12 GB / 4070
+            return 24
+        if mem >= 8 * 1024**3:       # 8 GB cards
             return 16
-        return 8                      # 8 GB cards
+        return 8                      # smaller cards
     if device == "mps":
-        return 8   # unified memory — shared with OS
+        return 16   # unified memory — Apple Silicon can handle more
     return 4        # CPU fallback
 
 

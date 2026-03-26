@@ -16,7 +16,7 @@ from pathlib import Path
 import gradio as gr
 
 from reels_transcriber.device import DEVICE, DTYPE, BATCH_SIZE, device_summary
-from reels_transcriber.transcriber import load_model, transcribe, MODEL_NAME
+from reels_transcriber.transcriber import load_model, transcribe, MODEL_NAME, MODEL_DISTIL, MODEL_LARGE
 from reels_transcriber.formatter import format_results
 
 OUTPUT_DIR = Path(tempfile.gettempdir()) / "reels_transcriber"
@@ -30,7 +30,7 @@ _DEVICE_LABEL = device_summary(DEVICE)
 # Pipelines
 # ---------------------------------------------------------------------------
 
-def process_ig_profile(username: str, language: str, progress=gr.Progress()):
+def process_ig_profile(username: str, language: str, model: str, progress=gr.Progress()):
     from reels_transcriber.scraper import scrape_and_download
 
     username = username.strip().lstrip("@").split("/")[-1].split("?")[0].strip()
@@ -43,8 +43,9 @@ def process_ig_profile(username: str, language: str, progress=gr.Progress()):
     if not video_infos:
         raise gr.Error("No reels could be downloaded.")
 
+    model_name = MODEL_LARGE if model == "large-v3 (accurate)" else MODEL_DISTIL
     progress(0.6, desc=f"{len(video_infos)} reels downloaded, transcribing...")
-    results = transcribe(video_infos, language, progress, 0.6, 0.95)
+    results = transcribe(video_infos, language, progress, 0.6, 0.95, model_name=model_name)
 
     display = f"@{username}"
     if user_info and user_info.get("full_name"):
@@ -54,7 +55,7 @@ def process_ig_profile(username: str, language: str, progress=gr.Progress()):
     return md, jp, tp, f"**{len(results)}** reels transcribed successfully."
 
 
-def process_tt_profile(username: str, language: str, progress=gr.Progress()):
+def process_tt_profile(username: str, language: str, model: str, progress=gr.Progress()):
     from reels_transcriber.tiktok import scrape_profile_videos
 
     username = username.strip().lstrip("@").split("/")[-1].split("?")[0].strip()
@@ -71,8 +72,9 @@ def process_tt_profile(username: str, language: str, progress=gr.Progress()):
             "Try the Single URL tab instead."
         )
 
+    model_name = MODEL_LARGE if model == "large-v3 (accurate)" else MODEL_DISTIL
     progress(0.6, desc=f"{len(video_infos)} videos downloaded, transcribing...")
-    results = transcribe(video_infos, language, progress, 0.6, 0.95)
+    results = transcribe(video_infos, language, progress, 0.6, 0.95, model_name=model_name)
 
     display = f"@{username}"
     if user_info:
@@ -86,7 +88,7 @@ def process_tt_profile(username: str, language: str, progress=gr.Progress()):
     return md, jp, tp, f"**{len(results)}** TikTok videos transcribed successfully."
 
 
-def process_single_url(url: str, language: str, progress=gr.Progress()):
+def process_single_url(url: str, language: str, model: str, progress=gr.Progress()):
     url = url.strip()
     if not url:
         raise gr.Error("Please enter a URL.")
@@ -108,14 +110,15 @@ def process_single_url(url: str, language: str, progress=gr.Progress()):
     else:
         raise gr.Error("Unsupported URL. Paste an Instagram Reel or TikTok video link.")
 
+    model_name = MODEL_LARGE if model == "large-v3 (accurate)" else MODEL_DISTIL
     progress(0.4, desc="Transcribing...")
-    results = transcribe([info], language, progress, 0.4, 0.95)
+    results = transcribe([info], language, progress, 0.4, 0.95, model_name=model_name)
 
     md, jp, tp = format_results(results, f"{platform} Video Transcript", OUTPUT_DIR)
     return md, jp, tp, f"**1** {platform} video transcribed successfully."
 
 
-def process_files(files, language: str, progress=gr.Progress()):
+def process_files(files, language: str, model: str, progress=gr.Progress()):
     if not files:
         raise gr.Error("Please upload at least one file.")
 
@@ -127,7 +130,8 @@ def process_files(files, language: str, progress=gr.Progress()):
         for f in files
     ]
 
-    results = transcribe(file_infos, language, progress)
+    model_name = MODEL_LARGE if model == "large-v3 (accurate)" else MODEL_DISTIL
+    results = transcribe(file_infos, language, progress, model_name=model_name)
     md, jp, tp = format_results(results, "Video Transcripts", OUTPUT_DIR)
     return md, jp, tp, f"**{len(results)}** videos transcribed successfully."
 
@@ -217,8 +221,18 @@ footer { display: none !important }
 """
 
 
+MODELS = [
+    ("distil-large-v3 (fast)", "distil-large-v3 (fast)"),
+    ("large-v3 (accurate)", "large-v3 (accurate)"),
+]
+
+
 def _lang_dropdown() -> gr.Dropdown:
     return gr.Dropdown(label="Language", choices=LANGUAGES, value="auto")
+
+
+def _model_dropdown() -> gr.Dropdown:
+    return gr.Dropdown(label="Model", choices=MODELS, value="distil-large-v3 (fast)")
 
 
 def build_ui() -> gr.Blocks:
@@ -256,6 +270,7 @@ def build_ui() -> gr.Blocks:
                         )
                     with gr.Column(scale=1, min_width=140):
                         lang_url = _lang_dropdown()
+                        model_url = _model_dropdown()
                 btn_url = gr.Button("Transcribe", variant="primary", size="lg")
 
             # 2. Instagram Profile
@@ -272,6 +287,7 @@ def build_ui() -> gr.Blocks:
                         )
                     with gr.Column(scale=1, min_width=140):
                         lang_ig = _lang_dropdown()
+                        model_ig = _model_dropdown()
                 btn_ig = gr.Button(
                     "Fetch & Transcribe", variant="primary", size="lg"
                 )
@@ -290,6 +306,7 @@ def build_ui() -> gr.Blocks:
                         )
                     with gr.Column(scale=1, min_width=140):
                         lang_tt = _lang_dropdown()
+                        model_tt = _model_dropdown()
                 btn_tt = gr.Button(
                     "Fetch & Transcribe", variant="primary", size="lg"
                 )
@@ -309,6 +326,7 @@ def build_ui() -> gr.Blocks:
                         )
                     with gr.Column(scale=1, min_width=140):
                         lang_f = _lang_dropdown()
+                        model_f = _model_dropdown()
                 btn_f = gr.Button("Transcribe", variant="primary", size="lg")
 
         # ── Status ──────────────────────────────────────
@@ -325,15 +343,15 @@ def build_ui() -> gr.Blocks:
 
         # ── Wiring ──────────────────────────────────────
         outputs = [out_md, out_json, out_txt, status]
-        btn_url.click(process_single_url, [inp_url, lang_url], outputs)
-        btn_ig.click(process_ig_profile, [inp_ig, lang_ig], outputs)
-        btn_tt.click(process_tt_profile, [inp_tt, lang_tt], outputs)
-        btn_f.click(process_files, [inp_files, lang_f], outputs)
+        btn_url.click(process_single_url, [inp_url, lang_url, model_url], outputs)
+        btn_ig.click(process_ig_profile, [inp_ig, lang_ig, model_ig], outputs)
+        btn_tt.click(process_tt_profile, [inp_tt, lang_tt, model_tt], outputs)
+        btn_f.click(process_files, [inp_files, lang_f, model_f], outputs)
 
         # ── Footer ──────────────────────────────────────
         gr.HTML(f"""
         <div class="app-footer">
-            {_MODEL_SHORT} &middot; SDPA Attention &middot; {_DEVICE_LABEL}
+            {_MODEL_SHORT} &middot; Insanely-Fast-Whisper &middot; {_DEVICE_LABEL}
             <br>
             <a href="https://github.com/aytzey/reels-transcriber"
                target="_blank">github.com/aytzey/reels-transcriber</a>
