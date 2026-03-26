@@ -1,18 +1,16 @@
 """
 Reels Transcriber — Gradio web application.
 
-Provides two modes:
-1. Instagram Profile: enter a username → all public reels are scraped,
-   downloaded, and transcribed end-to-end.
-2. Upload Videos: drag-and-drop local video/audio files for batch
-   transcription.
-
-Run with:
-    python app.py
+Four modes:
+1. Instagram Profile — all public reels from a username
+2. TikTok Profile — all public videos from a username
+3. Single URL — one Instagram Reel or TikTok video
+4. Upload Videos — drag-and-drop local files
 """
 
 from __future__ import annotations
 
+import re
 import tempfile
 from pathlib import Path
 
@@ -20,7 +18,6 @@ import gradio as gr
 
 from reels_transcriber.device import DEVICE, DTYPE, BATCH_SIZE, device_summary
 from reels_transcriber.transcriber import load_model, transcribe, MODEL_NAME
-from reels_transcriber.scraper import scrape_and_download
 from reels_transcriber.formatter import format_results
 
 OUTPUT_DIR = Path(tempfile.gettempdir()) / "reels_transcriber"
@@ -28,41 +25,125 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
-# Pipeline handlers
+# Pipeline: Instagram profile
 # ---------------------------------------------------------------------------
 
-def process_profile(username: str, language: str, progress=gr.Progress()):
-    """Instagram profile → download reels → transcribe → format."""
+def process_ig_profile(username: str, language: str, progress=gr.Progress()):
+    from reels_transcriber.scraper import scrape_and_download
+
     username = username.strip().lstrip("@").split("/")[-1].split("?")[0].strip()
     if not username:
         raise gr.Error("Please enter an Instagram username.")
 
     video_infos, user_info = scrape_and_download(
-        username, OUTPUT_DIR / username, progress
+        username, OUTPUT_DIR / f"ig_{username}", progress
     )
     if not video_infos:
-        raise gr.Error("No videos could be downloaded.")
+        raise gr.Error("No reels could be downloaded.")
 
     progress(0.6, desc=f"{len(video_infos)} reels downloaded, transcribing...")
-
-    results = transcribe(
-        video_infos, language, progress, progress_start=0.6, progress_end=0.95
-    )
+    results = transcribe(video_infos, language, progress, 0.6, 0.95)
 
     display = f"@{username}"
     if user_info and user_info.get("full_name"):
         display = f"{user_info['full_name']} (@{username})"
 
-    md, jp, tp = format_results(
-        results, f"{display} - Reels Transcripts", OUTPUT_DIR
-    )
-    return md, jp, tp, f"**{len(results)}** reels transcribed successfully!"
+    md, jp, tp = format_results(results, f"{display} - Reels Transcripts", OUTPUT_DIR)
+    return md, jp, tp, f"**{len(results)}** reels transcribed!"
 
+
+# ---------------------------------------------------------------------------
+# Pipeline: TikTok profile
+# ---------------------------------------------------------------------------
+
+def process_tt_profile(username: str, language: str, progress=gr.Progress()):
+    from reels_transcriber.tiktok import scrape_profile_videos
+
+    username = username.strip().lstrip("@").split("/")[-1].split("?")[0].strip()
+    if not username:
+        raise gr.Error("Please enter a TikTok username.")
+
+    video_infos, user_info = scrape_profile_videos(
+        username, OUTPUT_DIR / f"tt_{username}", progress
+    )
+    if not video_infos:
+        raise gr.Error(
+            f"No videos found for @{username}. "
+            "The profile may be private, or Cloudflare blocked the request. "
+            "Try the Single URL tab instead."
+        )
+
+    progress(0.6, desc=f"{len(video_infos)} videos downloaded, transcribing...")
+    results = transcribe(video_infos, language, progress, 0.6, 0.95)
+
+    display = f"@{username}"
+    if user_info:
+        nickname = user_info.get("user", {}).get("nickname", "")
+        if nickname:
+            display = f"{nickname} (@{username})"
+
+    md, jp, tp = format_results(
+        results, f"{display} - TikTok Transcripts", OUTPUT_DIR
+    )
+    return md, jp, tp, f"**{len(results)}** TikTok videos transcribed!"
+
+
+# ---------------------------------------------------------------------------
+# Pipeline: Single URL (Instagram Reel or TikTok video)
+# ---------------------------------------------------------------------------
+
+def _is_tiktok(url: str) -> bool:
+    return "tiktok.com" in url or "vm.tiktok.com" in url
+
+
+def _is_instagram(url: str) -> bool:
+    return "instagram.com" in url
+
+
+def process_single_url(url: str, language: str, progress=gr.Progress()):
+    url = url.strip()
+    if not url:
+        raise gr.Error("Please enter a URL.")
+
+    progress(0, desc="Downloading video...")
+
+    if _is_tiktok(url):
+        from reels_transcriber.tiktok import download_single_video
+
+        info = download_single_video(url, OUTPUT_DIR / "single")
+        if not info:
+            raise gr.Error("Could not download this TikTok video. Check the URL.")
+        platform = "TikTok"
+
+    elif _is_instagram(url):
+        from reels_transcriber.scraper import download_single_reel
+
+        info = download_single_reel(url, OUTPUT_DIR / "single")
+        if not info:
+            raise gr.Error("Could not download this Instagram Reel. Check the URL.")
+        platform = "Instagram"
+
+    else:
+        raise gr.Error(
+            "Unsupported URL. Please paste an Instagram Reel or TikTok video link."
+        )
+
+    progress(0.4, desc="Transcribing...")
+    results = transcribe([info], language, progress, 0.4, 0.95)
+
+    md, jp, tp = format_results(
+        results, f"{platform} Video Transcript", OUTPUT_DIR
+    )
+    return md, jp, tp, f"**1** {platform} video transcribed!"
+
+
+# ---------------------------------------------------------------------------
+# Pipeline: Local file upload
+# ---------------------------------------------------------------------------
 
 def process_files(files, language: str, progress=gr.Progress()):
-    """Local file upload → transcribe → format."""
     if not files:
-        raise gr.Error("Please upload at least one video or audio file.")
+        raise gr.Error("Please upload at least one file.")
 
     file_infos = [
         {
@@ -74,7 +155,7 @@ def process_files(files, language: str, progress=gr.Progress()):
 
     results = transcribe(file_infos, language, progress)
     md, jp, tp = format_results(results, "Video Transcripts", OUTPUT_DIR)
-    return md, jp, tp, f"**{len(results)}** videos transcribed successfully!"
+    return md, jp, tp, f"**{len(results)}** videos transcribed!"
 
 
 # ---------------------------------------------------------------------------
@@ -108,39 +189,89 @@ AUDIO_TYPES = [
 ]
 
 
+def _lang_dropdown(label: str = "Language") -> gr.Dropdown:
+    return gr.Dropdown(label=label, choices=LANGUAGES, value="auto")
+
+
 def build_ui() -> gr.Blocks:
     with gr.Blocks(title="Reels Transcriber") as demo:
         gr.HTML(
             '<div class="header">'
             "<h1>Reels Transcriber</h1>"
-            "<p>Transcribe any public Instagram profile's Reels with "
-            f"<b>{MODEL_NAME.split('/')[-1]}</b> on {device_summary(DEVICE)}.</p>"
-            "</div>"
+            "<p>Transcribe Instagram Reels & TikTok videos with "
+            f"<b>{MODEL_NAME.split('/')[-1]}</b> on "
+            f"{device_summary(DEVICE)}.</p></div>"
         )
 
+        # -- Shared outputs (defined first, wired later) --
+        status = gr.Markdown(elem_classes=["stat"], visible=False)
         with gr.Tabs():
-            with gr.TabItem("Instagram Profile"):
+            with gr.TabItem("Transcripts"):
+                out_md = gr.Markdown()
+            with gr.TabItem("Download"):
+                with gr.Row():
+                    out_json = gr.File(label="JSON")
+                    out_txt = gr.File(label="TXT")
+
+        outputs = [out_md, out_json, out_txt, status]
+
+        # -- Input tabs --
+        with gr.Tabs():
+            # --- 1. Single URL ---
+            with gr.TabItem("Single URL"):
                 gr.Markdown(
-                    "*Enter a username — all public reels will be "
-                    "downloaded and transcribed automatically.*"
+                    "*Paste an Instagram Reel or TikTok video URL.*"
                 )
                 with gr.Row():
                     with gr.Column(scale=3):
-                        inp_user = gr.Textbox(
-                            label="Username",
-                            placeholder="vince.quant",
-                            info="Without @ or paste the full profile URL",
+                        inp_url = gr.Textbox(
+                            label="Video URL",
+                            placeholder="https://www.instagram.com/reel/ABC123/  or  https://vm.tiktok.com/ZMr...",
+                            info="Supports Instagram Reels and TikTok videos",
                         )
                     with gr.Column(scale=1):
-                        inp_lang_ig = gr.Dropdown(
-                            label="Language",
-                            choices=LANGUAGES,
-                            value="auto",
+                        lang_url = _lang_dropdown()
+                btn_url = gr.Button("Transcribe", variant="primary", size="lg")
+
+            # --- 2. Instagram Profile ---
+            with gr.TabItem("Instagram Profile"):
+                gr.Markdown(
+                    "*Enter a username — all public reels will be "
+                    "downloaded and transcribed.*"
+                )
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        inp_ig = gr.Textbox(
+                            label="Username",
+                            placeholder="vince.quant",
+                            info="Without @ or paste the profile URL",
                         )
+                    with gr.Column(scale=1):
+                        lang_ig = _lang_dropdown()
                 btn_ig = gr.Button(
                     "Fetch & Transcribe Reels", variant="primary", size="lg"
                 )
 
+            # --- 3. TikTok Profile ---
+            with gr.TabItem("TikTok Profile"):
+                gr.Markdown(
+                    "*Enter a TikTok username — all public videos will be "
+                    "downloaded and transcribed.*"
+                )
+                with gr.Row():
+                    with gr.Column(scale=3):
+                        inp_tt = gr.Textbox(
+                            label="Username",
+                            placeholder="khaby.lame",
+                            info="Without @ or paste the profile URL",
+                        )
+                    with gr.Column(scale=1):
+                        lang_tt = _lang_dropdown()
+                btn_tt = gr.Button(
+                    "Fetch & Transcribe Videos", variant="primary", size="lg"
+                )
+
+            # --- 4. Upload Files ---
             with gr.TabItem("Upload Videos"):
                 gr.Markdown(
                     "*Drag & drop video or audio files for batch transcription.*"
@@ -154,26 +285,19 @@ def build_ui() -> gr.Blocks:
                             height=200,
                         )
                     with gr.Column(scale=1):
-                        inp_lang_f = gr.Dropdown(
-                            label="Language",
-                            choices=LANGUAGES,
-                            value="auto",
-                        )
+                        lang_f = _lang_dropdown()
                 btn_f = gr.Button("Transcribe", variant="primary", size="lg")
 
-        status = gr.Markdown(elem_classes=["stat"])
+        # -- Wire buttons to pipelines --
+        btn_url.click(process_single_url, [inp_url, lang_url], outputs)
+        btn_ig.click(process_ig_profile, [inp_ig, lang_ig], outputs)
+        btn_tt.click(process_tt_profile, [inp_tt, lang_tt], outputs)
+        btn_f.click(process_files, [inp_files, lang_f], outputs)
 
-        with gr.Tabs():
-            with gr.TabItem("Transcripts"):
-                out_md = gr.Markdown()
-            with gr.TabItem("Download"):
-                with gr.Row():
-                    out_json = gr.File(label="JSON")
-                    out_txt = gr.File(label="TXT")
-
-        outputs = [out_md, out_json, out_txt, status]
-        btn_ig.click(process_profile, [inp_user, inp_lang_ig], outputs)
-        btn_f.click(process_files, [inp_files, inp_lang_f], outputs)
+        gr.HTML(
+            '<div style="text-align:center;color:#666;margin-top:1.5rem;'
+            'font-size:.85rem">openai/whisper-large-v3 &bull; GPU accelerated</div>'
+        )
 
     return demo
 

@@ -27,6 +27,90 @@ from pathlib import Path
 from typing import Callable
 
 
+# ---------------------------------------------------------------------------
+# Single reel download
+# ---------------------------------------------------------------------------
+
+def download_single_reel(
+    reel_url: str,
+    out_dir: Path,
+) -> dict | None:
+    """Download a single Instagram Reel by URL.
+
+    Uses igram.world ``/api/convert`` to resolve a proxy CDN link, then
+    downloads the video through the Playwright browser context.
+
+    Returns a dict with ``path``, ``shortcode``, ``date``, ``caption``, ``url``
+    or None on failure.
+    """
+    from playwright.sync_api import sync_playwright
+    import re
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Extract shortcode from URL
+    m = re.search(r"/(?:reel|p)/([A-Za-z0-9_-]+)", reel_url)
+    shortcode = m.group(1) if m else "unknown"
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=True)
+        context = browser.new_context(ignore_https_errors=True)
+        page = context.new_page()
+
+        captured: list[dict] = []
+
+        def _on_response(resp):
+            url = resp.url
+            if "/api/" in url and "google" not in url and "sentry" not in url:
+                try:
+                    captured.append({"url": url, "body": resp.json()})
+                except Exception:
+                    pass
+
+        page.on("response", _on_response)
+
+        page.goto("https://igram.world/en1/", timeout=30_000)
+        page.wait_for_selector("#search-form-input", timeout=15_000)
+        page.locator("#search-form-input").fill(reel_url)
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(10_000)
+
+        proxy_url = _find_proxy_url(captured)
+        if not proxy_url:
+            browser.close()
+            return None
+
+        try:
+            resp = context.request.get(proxy_url, timeout=60_000)
+            if resp.status != 200:
+                browser.close()
+                return None
+            body = resp.body()
+        except Exception:
+            browser.close()
+            return None
+
+        browser.close()
+
+    if len(body) < 1_000:
+        return None
+
+    path = out_dir / f"{shortcode}.mp4"
+    path.write_bytes(body)
+
+    return {
+        "path": str(path),
+        "shortcode": shortcode,
+        "date": "",
+        "caption": "",
+        "url": reel_url,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Profile scraping (all reels)
+# ---------------------------------------------------------------------------
+
 def scrape_and_download(
     username: str,
     out_dir: Path,
