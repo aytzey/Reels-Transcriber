@@ -1,0 +1,22 @@
+[project]
+name = "reels-transcriber"
+version = "1.0.0"
+description = "Transcribe all public Instagram Reels from any profile using Whisper Large-v3. Works on CUDA, Apple Silicon (MPS) and CPU."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "torchaudio>=2.1",
+    "transformers>=4.40",
+    "gradio>=4.0",
+    "playwright>=1.40",
+    "requests",
+]
+
+[project.scripts]
+reels-transcriber = "app:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends._legacy:_Backend"

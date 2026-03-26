@@ -1,0 +1,6 @@
+torch>=2.1
+torchaudio>=2.1
+transformers>=4.40
+gradio>=4.0
+playwright>=1.40
+requests
