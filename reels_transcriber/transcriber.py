@@ -1,23 +1,38 @@
 """
 Whisper Large-v3 inference engine with hardware-aware batching.
 
-Pipeline: video → ffmpeg audio extraction → chunked batched ASR → text
+Pipeline: video -> parallel ffmpeg extraction -> chunked batched ASR -> text
 
-The HuggingFace ``transformers.pipeline`` handles Whisper's native chunked
-long-form transcription: audio is split into 30-second segments, processed in
-parallel batches on the GPU, and decoded with timestamps.  We configure SDPA
-(Scaled Dot-Product Attention) as the attention backend — it's PyTorch-native
-and works across CUDA, MPS, and CPU without external dependencies.
+Audio extraction runs in parallel across CPU cores before transcription
+begins.  Whisper processes 30-second chunks in batches on the GPU.
 
-Batch size and dtype are selected at import time by ``device.py`` based on the
-detected accelerator.
+Attention backend selection:
+- Flash Attention 2 (if ``flash-attn`` is installed and CUDA sm_80+)
+- SDPA fallback (PyTorch-native, works everywhere)
 """
 
 from __future__ import annotations
 
+# Suppress noisy per-file warnings BEFORE any transformers import.
+import os as _os
+import warnings as _w
+import logging as _log
+
+_os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+_os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
+_w.filterwarnings("ignore", category=FutureWarning)
+_w.filterwarnings("ignore", category=UserWarning, module="transformers")
+_w.filterwarnings("ignore", message=".*chunk_length_s.*")
+_w.filterwarnings("ignore", message=".*attention mask.*")
+_w.filterwarnings("ignore", message=".*pipelines sequentially.*")
+_log.getLogger("transformers").setLevel(_log.ERROR)
+
 import os
 import subprocess
 import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Callable
 
@@ -31,6 +46,17 @@ _pipe = None
 _lock = threading.Lock()
 
 
+def _detect_attn_impl() -> str:
+    """Pick the best available attention implementation."""
+    if not DEVICE.startswith("cuda"):
+        return "sdpa"
+    try:
+        import flash_attn  # noqa: F401
+        return "flash_attention_2"
+    except ImportError:
+        return "sdpa"
+
+
 def load_model():
     """Eagerly load the Whisper pipeline.  Safe to call multiple times."""
     global _pipe
@@ -38,33 +64,37 @@ def load_model():
         return _pipe
     with _lock:
         if _pipe is None:
+            attn = _detect_attn_impl()
             _pipe = hf_pipeline(
                 "automatic-speech-recognition",
                 model=MODEL_NAME,
                 torch_dtype=DTYPE,
                 device=DEVICE,
-                model_kwargs={"attn_implementation": "sdpa"},
+                model_kwargs={"attn_implementation": attn},
             )
             empty_cache(DEVICE)
+            print(f"  Attention: {attn}")
     return _pipe
 
 
-def _extract_audio(video_path: str) -> str:
-    """Convert any media file to 16 kHz mono WAV via ffmpeg.
+# ---------------------------------------------------------------------------
+# Audio extraction (parallelized)
+# ---------------------------------------------------------------------------
 
-    Returns the wav path on success, or the original path as a fallback so
-    the pipeline can still attempt decoding.
-    """
+def _extract_audio(video_path: str) -> str:
+    """Convert any media file to 16 kHz mono WAV via ffmpeg."""
     wav = video_path.rsplit(".", 1)[0] + ".wav"
     if os.path.exists(wav):
         return wav
     subprocess.run(
         [
-            "ffmpeg", "-y", "-i", video_path,
-            "-vn",                  # drop video stream
-            "-acodec", "pcm_s16le", # 16-bit PCM
-            "-ar", "16000",         # 16 kHz (Whisper's native rate)
-            "-ac", "1",             # mono
+            "ffmpeg", "-y",
+            "-threads", "0",
+            "-i", video_path,
+            "-vn",
+            "-acodec", "pcm_s16le",
+            "-ar", "16000",
+            "-ac", "1",
             wav,
         ],
         capture_output=True,
@@ -72,6 +102,43 @@ def _extract_audio(video_path: str) -> str:
     )
     return wav if os.path.exists(wav) else video_path
 
+
+def _extract_all_audio(
+    file_infos: list[dict],
+    progress_cb: Callable | None,
+    progress_start: float,
+    progress_extract_end: float,
+) -> list[str]:
+    """Extract audio from all files in parallel using a thread pool."""
+    paths = [info["path"] for info in file_infos]
+    audio_paths: list[str | None] = [None] * len(paths)
+    total = len(paths)
+
+    if progress_cb:
+        progress_cb(progress_start, desc=f"Extracting audio from {total} files...")
+
+    with ThreadPoolExecutor(max_workers=min(4, total)) as pool:
+        futures = {
+            pool.submit(_extract_audio, p): idx for idx, p in enumerate(paths)
+        }
+        done = 0
+        for future in as_completed(futures):
+            idx = futures[future]
+            try:
+                audio_paths[idx] = future.result()
+            except Exception:
+                audio_paths[idx] = paths[idx]
+            done += 1
+            if progress_cb:
+                pct = progress_start + (progress_extract_end - progress_start) * (done / total)
+                progress_cb(pct, desc=f"Extracting audio ({done}/{total})...")
+
+    return [p or paths[i] for i, p in enumerate(audio_paths)]
+
+
+# ---------------------------------------------------------------------------
+# Transcription
+# ---------------------------------------------------------------------------
 
 def transcribe(
     file_infos: list[dict],
@@ -82,23 +149,8 @@ def transcribe(
 ) -> list[dict]:
     """Transcribe a batch of video/audio files.
 
-    Parameters
-    ----------
-    file_infos:
-        List of dicts, each with at least ``{"path": "/abs/path"}``.
-        Optional keys: ``shortcode``, ``date``, ``caption``, ``url``, ``filename``.
-    language:
-        ISO 639-1 code (e.g. ``"en"``, ``"tr"``) or ``"auto"`` for detection.
-    progress_cb:
-        ``progress_cb(fraction, desc=...)`` for UI progress reporting.
-    progress_start / progress_end:
-        Map progress to a sub-range of [0, 1] when called as part of a
-        larger pipeline.
-
-    Returns
-    -------
-    List of result dicts with ``transcription``, ``chunks``, and all
-    passthrough metadata from the input.
+    1. Extract audio from all files in parallel (threaded ffmpeg).
+    2. Run Whisper inference on GPU (each file chunked + batched internally).
     """
     pipe = load_model()
     lang = None if language == "auto" else language
@@ -107,23 +159,32 @@ def transcribe(
     if lang:
         generate_kwargs["language"] = lang
 
-    results: list[dict] = []
     total = len(file_infos)
-    t0 = __import__("time").monotonic()
+    t0 = time.monotonic()
+
+    # Phase 1: parallel audio extraction
+    extract_end = progress_start + (progress_end - progress_start) * 0.1
+    audio_paths = _extract_all_audio(
+        file_infos, progress_cb, progress_start, extract_end
+    )
+
+    # Phase 2: GPU inference
+    results: list[dict] = []
+    infer_start = extract_end
+    infer_range = progress_end - infer_start
 
     for i, info in enumerate(file_infos):
+        elapsed = time.monotonic() - t0
         if progress_cb:
-            pct = progress_start + (progress_end - progress_start) * (i / total)
-            elapsed = __import__("time").monotonic() - t0
+            pct = infer_start + infer_range * (i / total)
             progress_cb(
                 pct,
                 desc=f"Transcribing {i + 1}/{total}  ({elapsed:.0f}s elapsed)",
             )
 
         try:
-            audio = _extract_audio(info["path"])
             out = pipe(
-                audio,
+                audio_paths[i],
                 chunk_length_s=30,
                 batch_size=BATCH_SIZE,
                 generate_kwargs=generate_kwargs,
@@ -147,5 +208,9 @@ def transcribe(
                 for c in chunks
             ],
         })
+
+    elapsed = time.monotonic() - t0
+    if progress_cb:
+        progress_cb(progress_end, desc=f"Done ({elapsed:.0f}s total)")
 
     return results
