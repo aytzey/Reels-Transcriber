@@ -48,12 +48,11 @@ def get_dtype(device: str) -> torch.dtype:
 def get_batch_size(device: str) -> int:
     """Auto-compute optimal batch size from available GPU memory.
 
-    Each 30-second Whisper chunk uses roughly 275 MB VRAM in float16.
-    We reserve ~3.5 GB for model weights (distil-large-v3 / large-v3 in fp16)
-    plus ~0.5 GB OS/driver overhead, then fill the rest with batches.
+    Each 30-second Whisper chunk needs ~550 MB VRAM in float16 (mel features,
+    encoder/decoder activations, KV cache, intermediate tensors).  We reserve
+    ~4 GB for model weights + OS/driver overhead, then fill the rest.
 
-    Clamps to [1, 32] — going above 32 gives diminishing returns and can
-    trigger CUDA OOM on edge cases.
+    Clamps to [1, 24] to stay safe across all hardware.
     """
     if device.startswith("cuda"):
         idx = int(device.split(":")[-1]) if ":" in device else 0
@@ -61,9 +60,9 @@ def get_batch_size(device: str) -> int:
         free_mem = total_mem - 4 * 1024**3  # reserve ~4 GB for model + overhead
         if free_mem <= 0:
             return 1
-        chunk_cost = 275 * 1024**2  # ~275 MB per batch slot in fp16
+        chunk_cost = 550 * 1024**2  # ~550 MB per batch slot in fp16
         batch = int(free_mem // chunk_cost)
-        return max(1, min(batch, 32))
+        return max(1, min(batch, 24))
 
     if device == "mps":
         # Apple unified memory — query total system RAM, use 25% for batching
@@ -75,10 +74,10 @@ def get_batch_size(device: str) -> int:
             total_ram = 8 * 1024**3
         usable = total_ram * 0.25 - 4 * 1024**3  # reserve model + OS
         if usable <= 0:
-            return 4
-        chunk_cost = 550 * 1024**2  # fp32 chunks use ~2x memory
+            return 2
+        chunk_cost = 1100 * 1024**2  # fp32 chunks use ~2x memory vs fp16
         batch = int(usable // chunk_cost)
-        return max(4, min(batch, 16))
+        return max(2, min(batch, 12))
 
     return 2  # CPU fallback — RAM is plentiful but inference is slow
 
