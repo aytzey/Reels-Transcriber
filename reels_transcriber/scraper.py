@@ -5,8 +5,8 @@ Downloads all public video Reels from a given Instagram profile without
 requiring authentication.  Uses a third-party web service (igram.world) as
 an intermediary to:
 
-1. **List posts** — profile URL → paginated GraphQL post edges
-2. **Resolve download URLs** — each reel shortcode → signed proxy CDN URL
+1. **List posts** — profile URL -> paginated GraphQL post edges
+2. **Resolve download URLs** — each reel shortcode -> signed proxy CDN URL
 3. **Download** — fetch video bytes through the proxy CDN
 
 The proxy CDN layer (media.igram.world) is critical in environments where
@@ -22,6 +22,7 @@ cookies and TLS state consistent across the session.
 from __future__ import annotations
 
 import shutil
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -48,7 +49,6 @@ def download_single_reel(
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Extract shortcode from URL
     m = re.search(r"/(?:reel|p)/([A-Za-z0-9_-]+)", reel_url)
     shortcode = m.group(1) if m else "unknown"
 
@@ -72,8 +72,11 @@ def download_single_reel(
         page.goto("https://igram.world/en1/", timeout=30_000)
         page.wait_for_selector("#search-form-input", timeout=15_000)
         page.locator("#search-form-input").fill(reel_url)
-        page.keyboard.press("Enter")
-        page.wait_for_timeout(10_000)
+
+        with page.expect_response(
+            lambda r: "convert" in r.url, timeout=20_000
+        ):
+            page.keyboard.press("Enter")
 
         proxy_url = _find_proxy_url(captured)
         if not proxy_url:
@@ -118,18 +121,15 @@ def scrape_and_download(
 ) -> tuple[list[dict], dict | None]:
     """Download all public video Reels for *username*.
 
-    Returns
-    -------
-    video_infos : list[dict]
-        Each entry: ``{path, shortcode, date, caption, url}``
-    user_info : dict | None
-        Raw user metadata from the API (full_name, pk, etc.) or None.
+    Returns ``(video_infos, user_info)``.
     """
     from playwright.sync_api import sync_playwright
 
     if out_dir.exists():
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True)
+
+    t0 = time.monotonic()
 
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
@@ -157,8 +157,16 @@ def scrape_and_download(
         page.locator("#search-form-input").fill(
             f"https://www.instagram.com/{username}/"
         )
-        page.keyboard.press("Enter")
-        page.wait_for_timeout(12_000)
+
+        # Wait for BOTH posts and userInfo API responses instead of blind timeout
+        with page.expect_response(
+            lambda r: "posts" in r.url.lower() or "userInfo" in r.url,
+            timeout=20_000,
+        ):
+            page.keyboard.press("Enter")
+
+        # Give a small window for the second response to arrive
+        page.wait_for_timeout(3_000)
 
         all_edges: list[dict] = []
         user_info: dict | None = None
@@ -189,11 +197,15 @@ def scrape_and_download(
             return [], user_info
 
         if progress_cb:
-            progress_cb(0.15, desc=f"Found {len(reels)} reels, downloading...")
+            elapsed = time.monotonic() - t0
+            progress_cb(
+                0.15,
+                desc=f"Found {len(reels)} reels ({elapsed:.0f}s). Downloading...",
+            )
 
         # -- 2 & 3. Convert + download each reel -----------------------
         video_infos = _download_reels(
-            reels, page, context, captured, out_dir, progress_cb
+            reels, page, context, captured, out_dir, progress_cb, t0
         )
 
         browser.close()
@@ -268,7 +280,7 @@ def _extract_reels(edges: list[dict]) -> list[dict]:
     return reels
 
 
-def _download_reels(reels, page, context, captured, out_dir, progress_cb):
+def _download_reels(reels, page, context, captured, out_dir, progress_cb, t0):
     """For each reel, resolve a proxy CDN URL and download the video."""
     video_infos: list[dict] = []
     total = len(reels)
@@ -281,13 +293,17 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
             if ts else ""
         )
 
+        elapsed = time.monotonic() - t0
         if progress_cb:
             progress_cb(
                 0.15 + 0.45 * i / total,
-                desc=f"Downloading reel ({i + 1}/{total}): {sc}",
+                desc=(
+                    f"Downloading reel {i + 1}/{total}: {sc}  "
+                    f"({elapsed:.0f}s elapsed)"
+                ),
             )
 
-        # Submit reel URL to get a proxy download link
+        # Submit reel URL and wait for the convert API response
         captured.clear()
         reel_url = f"https://www.instagram.com/reel/{sc}/"
 
@@ -295,16 +311,26 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
             inp = page.locator("#search-form-input")
             inp.fill("")
             inp.fill(reel_url)
-            page.keyboard.press("Enter")
-            page.wait_for_timeout(8_000)
+            with page.expect_response(
+                lambda r: "convert" in r.url, timeout=15_000
+            ):
+                page.keyboard.press("Enter")
         except Exception:
-            page.goto("https://igram.world/en1/", timeout=30_000)
-            page.wait_for_selector("#search-form-input", timeout=15_000)
-            page.locator("#search-form-input").fill(reel_url)
-            page.keyboard.press("Enter")
-            page.wait_for_timeout(8_000)
+            # Fallback: navigate back and retry with a fixed timeout
+            try:
+                page.goto("https://igram.world/en1/", timeout=30_000)
+                page.wait_for_selector("#search-form-input", timeout=15_000)
+                page.locator("#search-form-input").fill(reel_url)
+                with page.expect_response(
+                    lambda r: "convert" in r.url, timeout=15_000
+                ):
+                    page.keyboard.press("Enter")
+            except Exception:
+                continue
 
-        # Extract proxy URL from /api/convert response
+        # Small grace period for the response to be parsed
+        page.wait_for_timeout(500)
+
         proxy_url = _find_proxy_url(captured)
         if not proxy_url:
             continue

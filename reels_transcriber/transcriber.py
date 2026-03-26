@@ -109,11 +109,16 @@ def transcribe(
 
     results: list[dict] = []
     total = len(file_infos)
+    t0 = __import__("time").monotonic()
 
     for i, info in enumerate(file_infos):
         if progress_cb:
             pct = progress_start + (progress_end - progress_start) * (i / total)
-            progress_cb(pct, desc=f"Transcribing ({i + 1}/{total})...")
+            elapsed = __import__("time").monotonic() - t0
+            progress_cb(
+                pct,
+                desc=f"Transcribing {i + 1}/{total}  ({elapsed:.0f}s elapsed)",
+            )
 
         try:
             audio = _extract_audio(info["path"])
