@@ -1,12 +1,25 @@
-"""Download public Instagram Reels via igram.world + Playwright.
-
-Flow:
-1. Submit profile URL to igram.world to get post list (incl. pagination).
-2. For each video reel, call /api/convert to obtain a proxy download URL
-   served through media.igram.world (bypasses network-level blocks on
-   cdninstagram.com).
-3. Download each video through the same Playwright browser context.
 """
+Instagram Reels scraper using headless Playwright.
+
+Downloads all public video Reels from a given Instagram profile without
+requiring authentication.  Uses a third-party web service (igram.world) as
+an intermediary to:
+
+1. **List posts** — profile URL → paginated GraphQL post edges
+2. **Resolve download URLs** — each reel shortcode → signed proxy CDN URL
+3. **Download** — fetch video bytes through the proxy CDN
+
+The proxy CDN layer (media.igram.world) is critical in environments where
+direct access to Instagram's CDN (scontent-*.cdninstagram.com) is blocked
+by corporate firewalls or SSL-inspecting proxies (e.g. Fortinet).  Playwright
+runs with ``ignore_https_errors=True`` so self-signed intercepting
+certificates don't break the flow.
+
+All network I/O runs through a single Playwright browser context, keeping
+cookies and TLS state consistent across the session.
+"""
+
+from __future__ import annotations
 
 import shutil
 from datetime import datetime, timezone
@@ -19,10 +32,14 @@ def scrape_and_download(
     out_dir: Path,
     progress_cb: Callable | None = None,
 ) -> tuple[list[dict], dict | None]:
-    """Return ``(video_infos, user_info)`` for *username*.
+    """Download all public video Reels for *username*.
 
-    Each entry in *video_infos* contains ``path``, ``shortcode``, ``date``,
-    ``caption`` and ``url``.
+    Returns
+    -------
+    video_infos : list[dict]
+        Each entry: ``{path, shortcode, date, caption, url}``
+    user_info : dict | None
+        Raw user metadata from the API (full_name, pk, etc.) or None.
     """
     from playwright.sync_api import sync_playwright
 
@@ -47,13 +64,12 @@ def scrape_and_download(
 
         page.on("response", _on_response)
 
-        # -- Step 1: fetch posts ----------------------------------------
+        # -- 1. Fetch post list ----------------------------------------
         if progress_cb:
             progress_cb(0, desc=f"Fetching @{username} profile...")
 
         page.goto("https://igram.world/en1/", timeout=30_000)
         page.wait_for_selector("#search-form-input", timeout=15_000)
-
         page.locator("#search-form-input").fill(
             f"https://www.instagram.com/{username}/"
         )
@@ -65,9 +81,7 @@ def scrape_and_download(
 
         for r in captured:
             if "posts" in r["url"].lower():
-                all_edges.extend(
-                    r["body"].get("result", {}).get("edges", [])
-                )
+                all_edges.extend(r["body"].get("result", {}).get("edges", []))
             if "userInfo" in r["url"]:
                 try:
                     user_info = r["body"]["result"][0]["user"]
@@ -78,56 +92,13 @@ def scrape_and_download(
             browser.close()
             return [], user_info
 
-        # pagination
-        total_count = None
-        for r in captured:
-            if "posts" in r["url"].lower():
-                total_count = r["body"].get("result", {}).get("count")
-                break
+        # -- Pagination -------------------------------------------------
+        total_count = _get_total_count(captured)
 
         if total_count and len(all_edges) < total_count:
-            for _ in range(5):
-                prev = len(all_edges)
-                captured.clear()
+            _paginate(page, captured, all_edges, total_count, progress_cb)
 
-                if progress_cb:
-                    progress_cb(
-                        0.05 + 0.1 * len(all_edges) / max(total_count, 1),
-                        desc=f"Loading posts ({len(all_edges)}/{total_count})...",
-                    )
-
-                btn = page.locator(
-                    'button:has-text("Load"), '
-                    'button:has-text("More"), '
-                    'button:has-text("Show")'
-                )
-                if btn.count() > 0:
-                    try:
-                        btn.first.click()
-                    except Exception:
-                        page.evaluate(
-                            "window.scrollTo(0, document.body.scrollHeight)"
-                        )
-                else:
-                    page.evaluate(
-                        "window.scrollTo(0, document.body.scrollHeight)"
-                    )
-
-                page.wait_for_timeout(8_000)
-
-                existing_ids = {e["node"]["id"] for e in all_edges}
-                for r in captured:
-                    if "posts" in r["url"].lower():
-                        for edge in (
-                            r["body"].get("result", {}).get("edges", [])
-                        ):
-                            if edge["node"]["id"] not in existing_ids:
-                                all_edges.append(edge)
-
-                if len(all_edges) >= total_count or len(all_edges) == prev:
-                    break
-
-        # filter videos
+        # -- Filter video reels -----------------------------------------
         reels = _extract_reels(all_edges)
         if not reels:
             browser.close()
@@ -136,7 +107,7 @@ def scrape_and_download(
         if progress_cb:
             progress_cb(0.15, desc=f"Found {len(reels)} reels, downloading...")
 
-        # -- Step 2 & 3: convert + download each reel -------------------
+        # -- 2 & 3. Convert + download each reel -----------------------
         video_infos = _download_reels(
             reels, page, context, captured, out_dir, progress_cb
         )
@@ -146,10 +117,56 @@ def scrape_and_download(
     return video_infos, user_info
 
 
-# -- helpers ----------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _get_total_count(captured: list[dict]) -> int | None:
+    for r in captured:
+        if "posts" in r["url"].lower():
+            return r["body"].get("result", {}).get("count")
+    return None
+
+
+def _paginate(page, captured, all_edges, total_count, progress_cb):
+    """Attempt to load additional pages of posts."""
+    for _ in range(5):
+        prev = len(all_edges)
+        captured.clear()
+
+        if progress_cb:
+            progress_cb(
+                0.05 + 0.1 * len(all_edges) / max(total_count, 1),
+                desc=f"Loading posts ({len(all_edges)}/{total_count})...",
+            )
+
+        btn = page.locator(
+            'button:has-text("Load"), button:has-text("More"), button:has-text("Show")'
+        )
+        try:
+            if btn.count() > 0:
+                btn.first.click()
+            else:
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+        except Exception:
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+
+        page.wait_for_timeout(8_000)
+
+        existing_ids = {e["node"]["id"] for e in all_edges}
+        for r in captured:
+            if "posts" in r["url"].lower():
+                for edge in r["body"].get("result", {}).get("edges", []):
+                    if edge["node"]["id"] not in existing_ids:
+                        all_edges.append(edge)
+
+        if len(all_edges) >= total_count or len(all_edges) == prev:
+            break
+
 
 def _extract_reels(edges: list[dict]) -> list[dict]:
-    reels = []
+    """Filter post edges down to video reels with download URLs."""
+    reels: list[dict] = []
     for edge in edges:
         node = edge.get("node", {})
         if not (node.get("is_video") and node.get("video_url")):
@@ -168,6 +185,7 @@ def _extract_reels(edges: list[dict]) -> list[dict]:
 
 
 def _download_reels(reels, page, context, captured, out_dir, progress_cb):
+    """For each reel, resolve a proxy CDN URL and download the video."""
     video_infos: list[dict] = []
     total = len(reels)
 
@@ -176,8 +194,7 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
         ts = reel.get("timestamp", 0)
         date_str = (
             datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M")
-            if ts
-            else ""
+            if ts else ""
         )
 
         if progress_cb:
@@ -186,6 +203,7 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
                 desc=f"Downloading reel ({i + 1}/{total}): {sc}",
             )
 
+        # Submit reel URL to get a proxy download link
         captured.clear()
         reel_url = f"https://www.instagram.com/reel/{sc}/"
 
@@ -202,17 +220,12 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
             page.keyboard.press("Enter")
             page.wait_for_timeout(8_000)
 
-        proxy_url = None
-        for r in captured:
-            if "convert" in r["url"]:
-                urls = r["body"].get("url", [])
-                if urls and isinstance(urls, list):
-                    proxy_url = urls[0].get("url", "")
-                break
-
+        # Extract proxy URL from /api/convert response
+        proxy_url = _find_proxy_url(captured)
         if not proxy_url:
             continue
 
+        # Download through the browser context (inherits cookies + TLS state)
         try:
             resp = context.request.get(proxy_url, timeout=60_000)
             if resp.status == 200:
@@ -231,3 +244,13 @@ def _download_reels(reels, page, context, captured, out_dir, progress_cb):
             pass
 
     return video_infos
+
+
+def _find_proxy_url(captured: list[dict]) -> str | None:
+    """Extract the first video proxy URL from captured API responses."""
+    for r in captured:
+        if "convert" in r["url"]:
+            urls = r["body"].get("url", [])
+            if urls and isinstance(urls, list):
+                return urls[0].get("url", "")
+    return None

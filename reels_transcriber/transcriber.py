@@ -1,4 +1,19 @@
-"""Whisper Large-v3 transcription engine."""
+"""
+Whisper Large-v3 inference engine with hardware-aware batching.
+
+Pipeline: video → ffmpeg audio extraction → chunked batched ASR → text
+
+The HuggingFace ``transformers.pipeline`` handles Whisper's native chunked
+long-form transcription: audio is split into 30-second segments, processed in
+parallel batches on the GPU, and decoded with timestamps.  We configure SDPA
+(Scaled Dot-Product Attention) as the attention backend — it's PyTorch-native
+and works across CUDA, MPS, and CPU without external dependencies.
+
+Batch size and dtype are selected at import time by ``device.py`` based on the
+detected accelerator.
+"""
+
+from __future__ import annotations
 
 import os
 import subprocess
@@ -6,8 +21,7 @@ import threading
 from pathlib import Path
 from typing import Callable
 
-import torch
-from transformers import pipeline
+from transformers import pipeline as hf_pipeline
 
 from .device import DEVICE, DTYPE, BATCH_SIZE, empty_cache
 
@@ -17,31 +31,42 @@ _pipe = None
 _lock = threading.Lock()
 
 
-def get_pipeline():
-    """Lazy-load the Whisper pipeline (first call downloads the model)."""
+def load_model():
+    """Eagerly load the Whisper pipeline.  Safe to call multiple times."""
     global _pipe
-    if _pipe is None:
-        with _lock:
-            if _pipe is None:
-                _pipe = pipeline(
-                    "automatic-speech-recognition",
-                    model=MODEL_NAME,
-                    torch_dtype=DTYPE,
-                    device=DEVICE,
-                    model_kwargs={"attn_implementation": "sdpa"},
-                )
-                empty_cache(DEVICE)
+    if _pipe is not None:
+        return _pipe
+    with _lock:
+        if _pipe is None:
+            _pipe = hf_pipeline(
+                "automatic-speech-recognition",
+                model=MODEL_NAME,
+                torch_dtype=DTYPE,
+                device=DEVICE,
+                model_kwargs={"attn_implementation": "sdpa"},
+            )
+            empty_cache(DEVICE)
     return _pipe
 
 
 def _extract_audio(video_path: str) -> str:
-    """Convert video to 16 kHz mono WAV via ffmpeg."""
+    """Convert any media file to 16 kHz mono WAV via ffmpeg.
+
+    Returns the wav path on success, or the original path as a fallback so
+    the pipeline can still attempt decoding.
+    """
     wav = video_path.rsplit(".", 1)[0] + ".wav"
     if os.path.exists(wav):
         return wav
     subprocess.run(
-        ["ffmpeg", "-y", "-i", video_path, "-vn",
-         "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", wav],
+        [
+            "ffmpeg", "-y", "-i", video_path,
+            "-vn",                  # drop video stream
+            "-acodec", "pcm_s16le", # 16-bit PCM
+            "-ar", "16000",         # 16 kHz (Whisper's native rate)
+            "-ac", "1",             # mono
+            wav,
+        ],
         capture_output=True,
         timeout=120,
     )
@@ -55,12 +80,27 @@ def transcribe(
     progress_start: float = 0.0,
     progress_end: float = 1.0,
 ) -> list[dict]:
-    """Transcribe a list of video/audio files.
+    """Transcribe a batch of video/audio files.
 
-    Each *file_infos* entry must contain at least ``{"path": "..."}`` and may
-    include ``shortcode``, ``date``, ``caption``, ``url``, ``filename``.
+    Parameters
+    ----------
+    file_infos:
+        List of dicts, each with at least ``{"path": "/abs/path"}``.
+        Optional keys: ``shortcode``, ``date``, ``caption``, ``url``, ``filename``.
+    language:
+        ISO 639-1 code (e.g. ``"en"``, ``"tr"``) or ``"auto"`` for detection.
+    progress_cb:
+        ``progress_cb(fraction, desc=...)`` for UI progress reporting.
+    progress_start / progress_end:
+        Map progress to a sub-range of [0, 1] when called as part of a
+        larger pipeline.
+
+    Returns
+    -------
+    List of result dicts with ``transcription``, ``chunks``, and all
+    passthrough metadata from the input.
     """
-    pipe = get_pipeline()
+    pipe = load_model()
     lang = None if language == "auto" else language
 
     generate_kwargs: dict = {"task": "transcribe"}
@@ -74,6 +114,7 @@ def transcribe(
         if progress_cb:
             pct = progress_start + (progress_end - progress_start) * (i / total)
             progress_cb(pct, desc=f"Transcribing ({i + 1}/{total})...")
+
         try:
             audio = _extract_audio(info["path"])
             out = pipe(
@@ -85,8 +126,8 @@ def transcribe(
             )
             text = out["text"].strip()
             chunks = out.get("chunks", [])
-        except Exception as e:
-            text = f"[ERROR: {e}]"
+        except Exception as exc:
+            text = f"[ERROR: {exc}]"
             chunks = []
 
         results.append({

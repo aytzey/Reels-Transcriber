@@ -1,4 +1,6 @@
-"""Format transcription results as Markdown, plain text, JSON and TXT files."""
+"""Output formatting — Markdown, plain text, JSON, and TXT file export."""
+
+from __future__ import annotations
 
 import json
 from datetime import datetime
@@ -12,7 +14,17 @@ def format_results(
     title: str,
     output_dir: Path,
 ) -> tuple[str, str, str]:
-    """Return ``(markdown, json_path, txt_path)``."""
+    """Format transcription results and write export files.
+
+    Returns
+    -------
+    markdown : str
+        Full Markdown document for in-app display.
+    json_path : str
+        Path to the exported JSON file.
+    txt_path : str
+        Path to the exported plain-text file.
+    """
     md_parts: list[str] = []
     txt_parts: list[str] = []
 
@@ -51,7 +63,6 @@ def format_results(
     )
 
     plain = "\n".join(txt_parts)
-
     safe = title.replace(" ", "_").replace("@", "").replace("/", "")[:50]
 
     json_path = output_dir / f"{safe}_transcripts.json"
