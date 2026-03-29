@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Billing &amp; Subscription | StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed": "#1f1b17",
+              "on-error-container": "#93000a",
+              "surface-dim": "#dcdad5",
+              "secondary-fixed-dim": "#cec5bf",
+              "surface-container-low": "#f5f3ee",
+              "secondary": "#645d58",
+              "on-tertiary-container": "#aef2ff",
+              "on-primary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-background": "#1b1c19",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed-variant": "#004f59",
+              "on-error": "#ffffff",
+              "primary-fixed": "#ffdbcd",
+              "inverse-on-surface": "#f2f1ec",
+              "tertiary": "#005863",
+              "surface-variant": "#e4e2dd",
+              "on-primary-container": "#ffe1d6",
+              "inverse-surface": "#30312e",
+              "error-container": "#ffdad6",
+              "surface-container-lowest": "#ffffff",
+              "surface-tint": "#944925",
+              "surface": "#fbf9f4",
+              "primary-fixed-dim": "#ffb596",
+              "on-primary-fixed": "#360f00",
+              "inverse-primary": "#ffb596",
+              "tertiary-fixed-dim": "#7fd3e3",
+              "surface-container": "#f0eee9",
+              "outline": "#87736b",
+              "on-primary-fixed-variant": "#76320f",
+              "surface-container-highest": "#e4e2dd",
+              "secondary-container": "#eae1da",
+              "on-tertiary-fixed": "#001f24",
+              "tertiary-fixed": "#9defff",
+              "secondary-fixed": "#eae1da",
+              "error": "#ba1a1a",
+              "surface-bright": "#fbf9f4",
+              "primary": "#823b18",
+              "on-secondary-container": "#6a635e",
+              "tertiary-container": "#007280",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-surface": "#1b1c19",
+              "outline-variant": "#dac1b8",
+              "surface-container-high": "#eae8e3",
+              "on-surface-variant": "#54433c",
+              "primary-container": "#a0522d",
+              "background": "#fbf9f4"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #823b18 0%, #a0522d 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-72 flex-col fixed left-0 top-0 bg-[#f5f3ee] dark:bg-[#2a2b26] flex p-8 gap-y-6 z-50">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 bg-primary-container rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history_edu</span>
+</div>
+<div>
+<h1 class="font-headline text-xl font-bold text-[#1b1c19] dark:text-[#fbf9f4]">StoryToText</h1>
+<p class="font-label text-[10px] uppercase tracking-widest opacity-60">The Digital Archivist</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined">book_4</span> Library
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined">description</span> Transcriptions
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined">folder_shared</span> Projects
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#823b18] font-bold bg-[#fbf9f4]/50 rounded-md transition-all duration-300 font-label text-sm tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span> Billing
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined">person</span> Account
+            </a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/20">
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase mb-2" href="#">
+<span class="material-symbols-outlined">help_outline</span> Support
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#1b1c19]/70 hover:bg-[#fbf9f4] rounded-md transition-all duration-300 font-label text-sm font-medium tracking-wide uppercase" href="#">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="ml-72 flex justify-between items-center px-12 py-6 max-w-[1440px] sticky top-0 bg-surface/80 backdrop-blur-md z-40">
+<div>
+<h2 class="font-headline text-2xl font-bold tracking-tight text-on-surface">Billing &amp; Subscription</h2>
+<p class="text-on-surface-variant text-sm mt-1">Manage your plan, usage, and financial records.</p>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-[#1b1c19]/60">
+<a class="font-label text-sm font-medium hover:text-primary transition-colors" href="#">Billing</a>
+<a class="font-label text-sm font-medium hover:text-primary transition-colors" href="#">Usage</a>
+<a class="font-label text-sm font-medium hover:text-primary transition-colors" href="#">Invoices</a>
+</div>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-secondary-container overflow-hidden ring-1 ring-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Professional portrait of a user in soft natural lighting, editorial style photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvVipGy1GP9O7yenDV30q4UtBqQJwQ-kHSKQIv9H-alHrgQvy-OzMO8QpXCZ9oq2Ew-F6vWFS-lAArJrmg8Sm8IcnhLHxssaDabJYjsmz0j5VZ4CL3XOfMPBSC_sonUmyg2mgc9PNdz8QxG9zXVLfq1Udcu6AYi5HMY1bVl_r3GnqzBmzGY1smEPoRAbizlKz8zmWAjkYk-Ic7N_8iUI9_4-yJPFFS4oih3-iDl9-2o2w3-Kj1r3Z8KHiZseYc8rTCLjeTRSkp9-E"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-72 p-12 max-w-[1200px] animate-fade-in">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Left Column: Plan & Usage -->
+<div class="lg:col-span-7 space-y-12">
+<!-- Current Plan Section -->
+<section>
+<h3 class="font-label text-xs font-bold uppercase tracking-[0.2em] text-outline mb-6">Current Plan</h3>
+<div class="bg-surface-container-lowest p-8 rounded-lg shadow-sm ring-1 ring-outline-variant/10 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-fixed/20 rounded-full -mr-16 -mt-16 blur-3xl transition-opacity group-hover:opacity-100 opacity-50"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+<div>
+<span class="inline-block bg-primary-fixed text-on-primary-fixed font-label text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-3">Professional</span>
+<h4 class="font-headline text-4xl font-bold text-on-surface">Pro Plan</h4>
+<div class="flex items-baseline gap-1 mt-2">
+<span class="text-2xl font-bold text-primary">$49</span>
+<span class="text-on-surface-variant text-sm">/ month</span>
+</div>
+<p class="text-on-surface-variant text-sm mt-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">event_repeat</span>
+                                    Next renewal on <span class="font-bold text-on-surface">October 12, 2024</span>
+</p>
+</div>
+<div class="flex flex-col gap-3">
+<button class="signature-gradient text-on-primary px-6 py-3 rounded-md font-label text-sm font-bold tracking-wide hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2">
+                                    Manage Subscription
+                                    <span class="material-symbols-outlined text-base">open_in_new</span>
+</button>
+<button class="bg-surface-container-high text-on-surface px-6 py-3 rounded-md font-label text-sm font-bold tracking-wide hover:bg-surface-variant transition-all">
+                                    Switch to Yearly
+                                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Usage Overview Section -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-label text-xs font-bold uppercase tracking-[0.2em] text-outline">Usage Overview</h3>
+<span class="text-xs text-on-surface-variant italic">Cycle ends in 18 days</span>
+</div>
+<div class="space-y-8">
+<!-- Main Credits -->
+<div class="bg-surface-container-low p-8 rounded-lg">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h4 class="font-headline text-xl font-bold">Credits &amp; Minutes Used</h4>
+<p class="text-on-surface-variant text-sm mt-1">Total combined processing time</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-on-surface">428</span>
+<span class="text-on-surface-variant text-sm">/ 1,200 min</span>
+</div>
+</div>
+<div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full signature-gradient rounded-full" style="width: 35.6%"></div>
+</div>
+</div>
+<!-- Split Breakdown -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label text-xs font-bold uppercase">Web Platform</span>
+<span class="font-label text-xs">280 min</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 rounded-full" style="width: 23%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between mb-2">
+<span class="font-label text-xs font-bold uppercase">API Integration</span>
+<span class="font-label text-xs">148 min</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Payment Methods & Details -->
+<div class="lg:col-span-5 space-y-12">
+<!-- Payment Methods Section -->
+<section>
+<h3 class="font-label text-xs font-bold uppercase tracking-[0.2em] text-outline mb-6">Payment Methods</h3>
+<div class="space-y-4">
+<!-- Primary Card -->
+<div class="group bg-surface-container-lowest p-6 rounded-lg ring-1 ring-outline-variant/20 hover:ring-primary/40 transition-all flex items-center gap-4">
+<div class="w-12 h-8 bg-[#1b1c19] rounded flex items-center justify-center text-white font-bold text-[10px]">
+                                VISA
+                            </div>
+<div class="flex-1">
+<p class="font-bold text-on-surface text-sm">Visa ending in 4242</p>
+<p class="text-on-surface-variant text-xs mt-0.5">Expires 08/26 • <span class="text-primary font-medium">Primary</span></p>
+</div>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+<!-- Add New Method -->
+<button class="w-full py-4 border-2 border-dashed border-outline-variant/30 rounded-lg flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-low transition-colors font-label text-sm font-bold">
+<span class="material-symbols-outlined">add</span>
+                            Add Payment Method
+                        </button>
+</div>
+</section>
+<!-- Editorial Sidebar Feature Card -->
+<div class="bg-primary text-on-primary p-8 rounded-lg relative overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-overlay" data-alt="Old typewriter on a wooden desk with warm cinematic lighting, artistic composition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeBMZKLW1lM6ktKnGGIdqvAY_tF8jJlyz5ISbOYAmkI5_T2eg7YPL9Iv8YNgKJgw2XAj5N8_WkQDEs52G06T-dcUwmVB0FUKKcW2Yo8iyycY_9TLB5r2gRFwbTZB2kpXsca8t8iO-_3sBu2D7FfMry7xO586ogs1rQk_k7CYFGWrTa0MCtxhHe8JODDD8qUeSQxFxCtlulvHk840j9BukRs2Lik9YbkcrbvwWgypvlK-H0DScmLmR4-na2gX2igZJ5d0eon92RWBs"/>
+<div class="relative z-10">
+<h4 class="font-headline text-2xl font-bold leading-tight">Preserving Every <br/>Spoken Word.</h4>
+<p class="text-primary-fixed/80 text-sm mt-4 leading-relaxed font-body">Our archival-grade transcription engine ensures your stories last a lifetime. Upgrade for priority processing and unlimited API access.</p>
+<a class="inline-flex items-center gap-2 mt-6 text-sm font-bold font-label uppercase tracking-widest border-b border-primary-fixed/50 pb-1 hover:border-primary-fixed transition-all" href="#">
+                            Explore API Docs
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Billing History Section -->
+<section class="mt-20">
+<h3 class="font-label text-xs font-bold uppercase tracking-[0.2em] text-outline mb-8">Billing History</h3>
+<div class="overflow-hidden bg-surface-container-lowest rounded-lg ring-1 ring-outline-variant/10">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant">
+<th class="px-8 py-4 font-label text-xs font-bold uppercase tracking-widest">Date</th>
+<th class="px-8 py-4 font-label text-xs font-bold uppercase tracking-widest">Amount</th>
+<th class="px-8 py-4 font-label text-xs font-bold uppercase tracking-widest">Invoice ID</th>
+<th class="px-8 py-4 font-label text-xs font-bold uppercase tracking-widest">Status</th>
+<th class="px-8 py-4 text-right font-label text-xs font-bold uppercase tracking-widest">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-8 py-6 font-medium text-sm">Sep 12, 2024</td>
+<td class="px-8 py-6 text-sm font-bold">$49.00</td>
+<td class="px-8 py-6 text-sm font-mono text-on-surface-variant">STT-2024-009</td>
+<td class="px-8 py-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Paid</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:text-primary-container transition-colors flex items-center gap-1 ml-auto font-label text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">download</span>
+                                    Download PDF
+                                </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-8 py-6 font-medium text-sm">Aug 12, 2024</td>
+<td class="px-8 py-6 text-sm font-bold">$49.00</td>
+<td class="px-8 py-6 text-sm font-mono text-on-surface-variant">STT-2024-008</td>
+<td class="px-8 py-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Paid</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:text-primary-container transition-colors flex items-center gap-1 ml-auto font-label text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">download</span>
+                                    Download PDF
+                                </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="px-8 py-6 font-medium text-sm">Jul 12, 2024</td>
+<td class="px-8 py-6 text-sm font-bold">$49.00</td>
+<td class="px-8 py-6 text-sm font-mono text-on-surface-variant">STT-2024-007</td>
+<td class="px-8 py-6">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Paid</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-primary hover:text-primary-container transition-colors flex items-center gap-1 ml-auto font-label text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">download</span>
+                                    Download PDF
+                                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-6 flex justify-center">
+<button class="text-on-surface-variant hover:text-on-surface text-sm font-label font-bold uppercase tracking-widest py-4">
+                    View Full History
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer Space -->
+<footer class="ml-72 p-12 mt-12 border-t border-outline-variant/10 text-on-surface-variant text-xs">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<p>© 2024 StoryToText. All rights reserved. Built for the modern archivist.</p>
+<div class="flex gap-8">
+<a class="hover:text-primary transition-colors uppercase tracking-widest font-label" href="#">Terms of Service</a>
+<a class="hover:text-primary transition-colors uppercase tracking-widest font-label" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors uppercase tracking-widest font-label" href="#">Status</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings | StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#dcdad5",
+              "surface-container": "#f0eee9",
+              "on-tertiary": "#ffffff",
+              "inverse-primary": "#ffb596",
+              "surface-variant": "#e4e2dd",
+              "on-error-container": "#93000a",
+              "on-error": "#ffffff",
+              "secondary-container": "#eae1da",
+              "outline-variant": "#dac1b8",
+              "on-primary": "#ffffff",
+              "primary": "#823b18",
+              "error": "#ba1a1a",
+              "inverse-surface": "#30312e",
+              "surface-tint": "#944925",
+              "primary-fixed": "#ffdbcd",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#1f1b17",
+              "on-secondary": "#ffffff",
+              "on-primary-container": "#ffe1d6",
+              "surface-bright": "#fbf9f4",
+              "background": "#fbf9f4",
+              "secondary-fixed-dim": "#cec5bf",
+              "tertiary-fixed-dim": "#7fd3e3",
+              "on-primary-fixed": "#360f00",
+              "tertiary": "#005863",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#9defff",
+              "tertiary-container": "#007280",
+              "surface-container-high": "#eae8e3",
+              "on-tertiary-container": "#aef2ff",
+              "surface-container-low": "#f5f3ee",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-secondary-container": "#6a635e",
+              "inverse-on-surface": "#f2f1ec",
+              "surface": "#fbf9f4",
+              "on-surface-variant": "#54433c",
+              "on-background": "#1b1c19",
+              "secondary-fixed": "#eae1da",
+              "on-tertiary-fixed": "#001f24",
+              "on-surface": "#1b1c19",
+              "outline": "#87736b",
+              "surface-container-highest": "#e4e2dd",
+              "primary-container": "#a0522d",
+              "on-primary-fixed-variant": "#76320f",
+              "primary-fixed-dim": "#ffb596",
+              "on-tertiary-fixed-variant": "#004f59",
+              "secondary": "#645d58"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fbf9f4;
+            color: #1b1c19;
+        }
+        .serif-text { font-family: 'Newsreader', serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopNavBar Execution -->
+<header class="w-full border-b-0 bg-[#fbf9f4] dark:bg-stone-950 flex justify-between items-center px-8 py-4 w-full sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tight text-[#1b1c19] dark:text-stone-50 font-['Newsreader']">StoryToText</span>
+<nav class="hidden md:flex items-center gap-6 font-['Newsreader'] font-medium text-lg dark:text-stone-100">
+<a class="text-[#1b1c19]/60 dark:text-stone-400 hover:text-[#823b18] dark:hover:text-[#ffdbcd] transition-colors duration-200 cursor-pointer active:opacity-70" href="#">Library</a>
+<a class="text-[#1b1c19]/60 dark:text-stone-400 hover:text-[#823b18] dark:hover:text-[#ffdbcd] transition-colors duration-200 cursor-pointer active:opacity-70" href="#">Transcribe</a>
+<a class="text-[#823b18] dark:text-[#ffdbcd] font-semibold" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40">search</span>
+<input class="bg-surface-container-low border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-primary w-64 placeholder:text-on-surface-variant/50" placeholder="Search archive..." type="text"/>
+</div>
+<button class="material-symbols-outlined text-[#823b18] dark:text-[#ffdbcd] cursor-pointer">notifications</button>
+<button class="material-symbols-outlined text-[#823b18] dark:text-[#ffdbcd] cursor-pointer">help_outline</button>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant/20">
+<img alt="User profile avatar" data-alt="Close-up studio portrait of a distinguished man with graying hair and a warm, intelligent expression, soft editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtKarIznwNzdMbtw_22SF_yaqDUmIKZ3nlefAU0kgdZViUqjUGmazYL2phnt3cyJXLHZhLdvUK7hnljYxE5YcDp4GkI6S8rRvkSSlHtGrybN-wc9tDrd6K1x6umXcTcVjc9K9opxCxeDG6Z102wnHFKrIP-rJd7wR73b5QzcXp4ey8mtPfqsTf2bcYNCcqAUoOI7X0wbh7Jjc8kImST_FwcxwnQTm0p6cTaHhIYzy-eFHXM00wY9ftnJmY89WeuYwKb_lU_qnK_Cg"/>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- SideNavBar Execution -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r-0 bg-[#f5f3ee] dark:bg-stone-900 py-8 space-y-2 sticky top-16">
+<div class="px-6 mb-8">
+<h2 class="font-headline text-2xl font-bold text-on-surface">Settings</h2>
+<p class="font-body text-xs text-on-surface-variant tracking-wide">Manage your account</p>
+</div>
+<nav class="space-y-1">
+<!-- Active Tab: Profile (Closest match to User Settings) -->
+<a class="flex items-center gap-3 px-6 py-3 w-full text-[#823b18] dark:text-[#ffdbcd] font-bold border-r-2 border-[#823b18] dark:border-[#ffdbcd] bg-[#fbf9f4]/50 dark:bg-stone-800/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-medium tracking-wide">Profile</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 w-full text-[#1b1c19]/70 dark:text-stone-400 hover:text-[#1b1c19] dark:hover:text-stone-200 hover:bg-[#fbf9f4] dark:hover:bg-stone-800 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-medium tracking-wide">Transcription</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 w-full text-[#1b1c19]/70 dark:text-stone-400 hover:text-[#1b1c19] dark:hover:text-stone-200 hover:bg-[#fbf9f4] dark:hover:bg-stone-800 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-medium tracking-wide">Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 w-full text-[#1b1c19]/70 dark:text-stone-400 hover:text-[#1b1c19] dark:hover:text-stone-200 hover:bg-[#fbf9f4] dark:hover:bg-stone-800 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="shield_lock">shield_lock</span>
+<span class="font-['Plus_Jakarta_Sans'] text-sm font-medium tracking-wide">Security</span>
+</a>
+</nav>
+<div class="mt-auto px-6 pt-8">
+<div class="p-4 rounded-xl bg-primary-fixed/30 border border-primary/10">
+<p class="text-xs font-bold text-on-primary-fixed mb-1 uppercase tracking-widest">Plan: Pro</p>
+<p class="text-[10px] text-on-primary-fixed-variant leading-relaxed">You have 450 transcription minutes remaining this month.</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-8 md:px-16 py-12 max-w-5xl mx-auto">
+<header class="mb-16">
+<h1 class="font-headline text-5xl font-bold tracking-tight text-on-surface mb-2">Settings</h1>
+<p class="font-body text-lg text-on-surface-variant font-light">Manage your account and preferences with journalistic precision.</p>
+</header>
+<div class="space-y-24">
+<!-- Profile Settings Section -->
+<section class="grid md:grid-cols-12 gap-12" id="profile">
+<div class="md:col-span-4">
+<h3 class="font-headline text-2xl text-on-surface mb-2">Profile Settings</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Your public identity within the StoryToText ecosystem. This information is used for collaboration and sharing.</p>
+</div>
+<div class="md:col-span-8 space-y-8">
+<div class="flex items-center gap-6 pb-6">
+<div class="h-20 w-20 rounded-full overflow-hidden bg-surface-container-high relative group">
+<img alt="User profile avatar" class="object-cover" data-alt="Close-up studio portrait of a distinguished man with graying hair and a warm, intelligent expression, soft editorial lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDOpxkmrOPvAN-HyAGl59S0oElPZTyzjcEP7q8uGNPGWDnDexXCpRXVxG-lpAY_hxRuPb82i9g-_emu07z-XC8Of9ih1SpqK5lEFLSaRpJpx_1fD0PBngVynNqGrA1E3Q7IemHSZhr5pT-p79WAJ5dC4NwnQ_tmKekGqzOZAQClp2n1voFhEtJy6lWzUWQuEC9s8bNEAeFotHG1T0pFF2Awx_4QmGF15xxQU_h1ZAlglBR7aAAyVyaT_JRFT8hC5N1RHEK1jqKOOU"/>
+<div class="absolute inset-0 bg-on-surface/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white">photo_camera</span>
+</div>
+</div>
+<div class="space-y-2">
+<button class="px-4 py-2 bg-surface-container-high text-on-surface text-sm font-semibold rounded hover:bg-surface-container-highest transition-colors">Change Photo</button>
+<p class="text-[11px] text-on-surface-variant">JPG, PNG or GIF. Max size of 800K.</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Full Name</label>
+<input class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md" type="text" value="Julian Thorne"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Email Address</label>
+<input class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md" type="email" value="julian.thorne@archivist.co"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Bio</label>
+<textarea class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md resize-none" rows="3">Digital archivist and independent journalist based in London. Collecting stories that define the modern era.</textarea>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Timezone</label>
+<select class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md">
+<option>London (GMT+0)</option>
+<option>New York (EST)</option>
+<option>Tokyo (JST)</option>
+</select>
+</div>
+<div class="pt-4">
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-md font-semibold text-sm shadow-xl shadow-primary/10 hover:opacity-90 transition-all">Save Changes</button>
+</div>
+</div>
+</section>
+<!-- Transcription Preferences Section -->
+<section class="grid md:grid-cols-12 gap-12 pt-12 border-t border-surface-container-highest" id="transcription">
+<div class="md:col-span-4">
+<h3 class="font-headline text-2xl text-on-surface mb-2">Transcription Preferences</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Configure how our AI engines process your recordings to ensure maximum accuracy.</p>
+</div>
+<div class="md:col-span-8 space-y-8">
+<div class="grid grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Default Language</label>
+<select class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md">
+<option>English (UK)</option>
+<option>English (US)</option>
+<option>French</option>
+<option>German</option>
+</select>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-[10px] uppercase font-bold tracking-widest text-on-surface-variant/70">Default AI Model</label>
+<select class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md">
+<option>Pro - Journalistic Precision</option>
+<option>Standard - Fast Narrative</option>
+<option>Technical - Specialized Vocab</option>
+</select>
+</div>
+</div>
+<div class="space-y-6 pt-4">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div>
+<p class="text-sm font-bold text-on-surface">Auto-detect speaker</p>
+<p class="text-[11px] text-on-surface-variant">Automatically label different voices in the recording.</p>
+</div>
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div>
+<p class="text-sm font-bold text-on-surface">Email notifications</p>
+<p class="text-[11px] text-on-surface-variant">Receive a summary when a transcription job is complete.</p>
+</div>
+<div class="w-10 h-5 bg-surface-variant rounded-full relative cursor-pointer">
+<div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Security Section -->
+<section class="grid md:grid-cols-12 gap-12 pt-12 border-t border-surface-container-highest" id="security">
+<div class="md:col-span-4">
+<h3 class="font-headline text-2xl text-on-surface mb-2">Security</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Protect your archives with modern encryption and access controls.</p>
+</div>
+<div class="md:col-span-8 space-y-10">
+<div class="space-y-6">
+<h4 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Change Password</h4>
+<div class="grid gap-4">
+<input class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md" placeholder="Current Password" type="password"/>
+<div class="grid grid-cols-2 gap-4">
+<input class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md" placeholder="New Password" type="password"/>
+<input class="bg-surface-container-lowest border-outline-variant/20 focus:border-primary focus:ring-0 text-sm py-3 px-4 rounded-md" placeholder="Confirm Password" type="password"/>
+</div>
+</div>
+<button class="text-primary text-xs font-bold uppercase tracking-widest hover:underline">Update Password</button>
+</div>
+<div class="pt-6 border-t border-surface-container-highest">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h4 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Two-Factor Authentication</h4>
+<p class="text-sm text-on-surface font-medium">Currently: <span class="text-error">Disabled</span></p>
+</div>
+<button class="px-4 py-2 border border-outline-variant/40 rounded text-xs font-bold uppercase tracking-widest hover:bg-surface-container-high transition-colors">Enable 2FA</button>
+</div>
+</div>
+<div class="pt-6 border-t border-surface-container-highest">
+<h4 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4">Active Sessions</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 bg-surface-container-lowest rounded-lg border border-outline-variant/10 shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant">laptop_mac</span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">MacBook Pro 16" — London, UK</p>
+<p class="text-[11px] text-on-surface-variant">Current Session • Chrome 114.0.0</p>
+</div>
+<span class="text-[10px] font-bold uppercase text-primary px-2 py-1 bg-primary-fixed/50 rounded">Active</span>
+</div>
+<div class="flex items-center gap-4 p-4 bg-surface-container-low/50 rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant/40">smartphone</span>
+<div class="flex-1">
+<p class="text-sm font-medium text-on-surface/60">iPhone 14 Pro — London, UK</p>
+<p class="text-[11px] text-on-surface-variant/60">Last login: 2 days ago • App v2.4.1</p>
+</div>
+<button class="text-[10px] font-bold uppercase text-on-surface-variant/60 hover:text-error transition-colors">Revoke</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Danger Zone Section -->
+<section class="grid md:grid-cols-12 gap-12 pt-12 pb-24 border-t border-error/20" id="danger">
+<div class="md:col-span-4">
+<h3 class="font-headline text-2xl text-error mb-2">Danger Zone</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed">Irreversible actions regarding your account and stored data. Please proceed with caution.</p>
+</div>
+<div class="md:col-span-8 flex flex-col items-start gap-6">
+<div class="p-6 rounded-xl bg-error-container/20 border border-error/10 w-full">
+<h4 class="text-sm font-bold text-on-surface mb-2">Delete Account</h4>
+<p class="text-xs text-on-surface-variant mb-6 leading-relaxed">Once you delete your account, there is no going back. All transcriptions, audio files, and metadata will be permanently erased from our servers.</p>
+<button class="px-6 py-3 bg-secondary text-white text-xs font-bold uppercase tracking-widest rounded-md hover:bg-stone-800 transition-colors shadow-lg">Delete Account Permanently</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Mobile Bottom Navigation (Hidden on desktop per SideNav logic) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-[#fbf9f4] border-t border-surface-container-highest flex justify-around items-center py-4 z-50">
+<a class="flex flex-col items-center gap-1 text-[#1b1c19]/60" href="#">
+<span class="material-symbols-outlined">library_books</span>
+<span class="text-[10px] font-bold uppercase">Library</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#1b1c19]/60" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="text-[10px] font-bold uppercase">Record</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#823b18]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase">Settings</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#1b1c19]/60" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase">Profile</span>
+</a>
+</nav>
+</body></html>

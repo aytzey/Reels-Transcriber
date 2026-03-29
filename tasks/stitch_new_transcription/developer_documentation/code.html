@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Developer Documentation | StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200..800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#fbf9f4",
+                        "tertiary-fixed": "#9defff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#360f00",
+                        "outline-variant": "#dac1b8",
+                        "on-surface": "#1b1c19",
+                        "error-container": "#ffdad6",
+                        "outline": "#87736b",
+                        "on-primary-fixed-variant": "#76320f",
+                        "primary-fixed": "#ffdbcd",
+                        "on-secondary-container": "#6a635e",
+                        "secondary-fixed-dim": "#cec5bf",
+                        "inverse-surface": "#30312e",
+                        "on-secondary-fixed": "#1f1b17",
+                        "surface-tint": "#944925",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#eae1da",
+                        "on-tertiary-fixed": "#001f24",
+                        "secondary-container": "#eae1da",
+                        "on-tertiary-container": "#aef2ff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004f59",
+                        "primary-container": "#a0522d",
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#eae8e3",
+                        "inverse-on-surface": "#f2f1ec",
+                        "surface-container": "#f0eee9",
+                        "on-secondary-fixed-variant": "#4b4641",
+                        "surface-dim": "#dcdad5",
+                        "tertiary-fixed-dim": "#7fd3e3",
+                        "surface-bright": "#fbf9f4",
+                        "secondary": "#645d58",
+                        "tertiary": "#005863",
+                        "surface-variant": "#e4e2dd",
+                        "primary-fixed-dim": "#ffb596",
+                        "on-surface-variant": "#54433c",
+                        "on-primary": "#ffffff",
+                        "background": "#fbf9f4",
+                        "surface-container-highest": "#e4e2dd",
+                        "primary": "#823b18",
+                        "on-primary-container": "#ffe1d6",
+                        "on-background": "#1b1c19",
+                        "surface-container-low": "#f5f3ee",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#ffb596",
+                        "tertiary-container": "#007280",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader", "serif"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fbf9f4; color: #1b1c19; }
+        .serif { font-family: 'Newsreader', serif; }
+        .code-block { background-color: #1b1c19; color: #fbf9f4; border-radius: 0.375rem; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- Side Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 bg-[#f5f3ee] dark:bg-[#1b1c19] h-screen w-64 border-r-0 font-['Plus_Jakarta_Sans'] text-[0.875rem] leading-relaxed z-50">
+<div class="px-8 mb-10">
+<h1 class="text-lg font-['Newsreader'] italic text-[#1b1c19] dark:text-[#fbf9f4]">StoryToText</h1>
+<p class="text-[0.65rem] uppercase tracking-widest opacity-50 mt-1">Premium Transcription</p>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">add_circle</span> New Transcription
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">history</span> History
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">key</span> API Keys
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">payments</span> Billing
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="mt-auto px-4 space-y-1">
+<div class="mb-4 px-4">
+<button class="w-full bg-gradient-to-br from-[#823b18] to-[#a0522d] text-white py-2.5 rounded-md font-medium text-xs shadow-sm active:scale-[0.98] transition-transform">
+                    Upgrade Plan
+                </button>
+</div>
+<!-- Active State: Documentation -->
+<a class="flex items-center gap-3 bg-[#ffffff] dark:bg-[#2a2b26] text-[#823b18] dark:text-[#ffdbcd] font-bold rounded-md px-4 py-2 shadow-sm transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">menu_book</span> Documentation
+            </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 dark:hover:bg-white/5 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined">help_outline</span> Support
+            </a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen bg-surface">
+<!-- Header -->
+<header class="flex justify-between items-center w-full px-10 h-20 bg-[#fbf9f4] dark:bg-[#1b1c19]">
+<h2 class="font-['Newsreader'] text-2xl text-[#823b18] dark:text-[#ffdbcd]">Documentation</h2>
+<div class="flex items-center gap-6 text-[#1b1c19]/40">
+<button class="hover:opacity-70 transition-opacity"><span class="material-symbols-outlined">search</span></button>
+<button class="hover:opacity-70 transition-opacity"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:opacity-70 transition-opacity"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+</header>
+<!-- Editorial Content Layout -->
+<div class="flex px-10 py-12 gap-16">
+<!-- Secondary Navigation (The Sub-Sidebar) -->
+<aside class="w-56 shrink-0">
+<nav class="sticky top-24 space-y-8">
+<div>
+<h4 class="font-['Plus_Jakarta_Sans'] text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-4">Guides</h4>
+<ul class="space-y-3 text-sm">
+<li><a class="text-primary font-semibold" href="#quickstart">Quickstart</a></li>
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#authentication">Authentication</a></li>
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#endpoints">API Endpoints</a></li>
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#webhooks">Webhooks</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-['Plus_Jakarta_Sans'] text-[0.65rem] uppercase tracking-[0.2em] text-outline mb-4">Integrations</h4>
+<ul class="space-y-3 text-sm">
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#ai-agents">AI Agent MCP</a></li>
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#zapier">Zapier &amp; Make</a></li>
+<li><a class="text-on-surface/70 hover:text-primary transition-colors" href="#sdk">Client SDKs</a></li>
+</ul>
+</div>
+</nav>
+</aside>
+<!-- Main Docs Body -->
+<article class="max-w-4xl flex-1 space-y-24">
+<!-- Hero / Intro -->
+<section class="scroll-mt-24" id="quickstart">
+<div class="mb-10">
+<span class="font-['Plus_Jakarta_Sans'] text-[0.7rem] uppercase tracking-[0.3em] text-primary font-bold">The Archivist's Toolkit</span>
+<h1 class="font-['Newsreader'] text-5xl mt-4 mb-6 tracking-tight leading-tight">Build the future of digital memory.</h1>
+<p class="font-['Plus_Jakarta_Sans'] text-lg text-on-surface/70 leading-relaxed max-w-2xl">
+                            Integrate our state-of-the-art transcription engine into your applications. From batch processing journals to real-time AI memory, StoryToText provides the high-fidelity foundation your content deserves.
+                        </p>
+</div>
+<div class="grid grid-cols-2 gap-8 mt-12">
+<div class="bg-surface-container-low p-8 rounded-lg">
+<h3 class="font-['Newsreader'] text-xl mb-3 italic">How it works</h3>
+<p class="text-sm text-on-surface/70 leading-relaxed">Our API follows RESTful principles. Upload audio, wait for processing, and receive deeply structured text including speaker diarization and sentiment layers.</p>
+</div>
+<div class="relative overflow-hidden rounded-lg">
+<img class="w-full h-full object-cover grayscale opacity-80" data-alt="close-up of vintage typewriter keys next to a modern silver laptop on a clean wooden desk with soft morning light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo-qhXI_9-M9How316ntjDtU_uVtbOY1rhAwL4wRcT37sggIiEDly9NnrEII-d6tDhT8qf5Kg3UbogCh7pzOb50WKMz-udiRJgvu8b8gB_w_O_IgZWW0SN-JC08GnLwPdGhIvax3QmPOx8zeYD7gA15TQb8T23K1alXUBwqf69OesXYa0FXPkHHuZtry5QkatKIiN22Z7Yyh07Sl2NJYnu1XN0sqrGbdKmBQdXGX0iaJkvaUhf21dQNDb4T7SduxBjG7Zwe7T1cgM"/>
+</div>
+</div>
+</section>
+<!-- Authentication -->
+<section class="scroll-mt-24" id="authentication">
+<div class="flex items-baseline gap-4 mb-8">
+<h2 class="font-['Newsreader'] text-3xl">Authentication</h2>
+<div class="h-px flex-1 bg-outline-variant/30"></div>
+</div>
+<p class="text-sm text-on-surface/70 mb-6 leading-relaxed">
+                        Authenticating with the StoryToText API is done via a Bearer token in the Authorization header. You can generate your API keys in the dashboard. Keep these secure and do not share them in client-side code.
+                    </p>
+<div class="code-block p-6 font-mono text-xs leading-relaxed overflow-x-auto shadow-xl">
+<div class="flex justify-between items-center mb-4 text-on-surface-variant/40 uppercase tracking-widest text-[10px]">
+<span>Shell / Request</span>
+<button class="hover:text-primary-fixed transition-colors">Copy</button>
+</div>
+<pre><code><span class="text-tertiary-fixed">curl</span> -X GET https://api.storytotext.com/v1/me \
+  -H <span class="text-primary-fixed">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -H <span class="text-primary-fixed">"Content-Type: application/json"</span></code></pre>
+</div>
+</section>
+<!-- Endpoints -->
+<section class="scroll-mt-24" id="endpoints">
+<h2 class="font-['Newsreader'] text-3xl mb-8">Transcription Endpoints</h2>
+<div class="overflow-hidden bg-surface-container-lowest rounded-md ring-1 ring-outline-variant/20">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-6 py-4 text-[0.65rem] uppercase tracking-widest font-bold text-outline">Method</th>
+<th class="px-6 py-4 text-[0.65rem] uppercase tracking-widest font-bold text-outline">Path</th>
+<th class="px-6 py-4 text-[0.65rem] uppercase tracking-widest font-bold text-outline">Description</th>
+</tr>
+</thead>
+<tbody class="text-sm font-['Plus_Jakarta_Sans']">
+<tr class="border-t border-outline-variant/10">
+<td class="px-6 py-4"><span class="px-2 py-0.5 bg-tertiary-container text-white text-[10px] font-bold rounded">POST</span></td>
+<td class="px-6 py-4 font-mono text-xs">/v1/transcriptions</td>
+<td class="px-6 py-4 text-on-surface/60">Create a new transcription job from a URL or file upload.</td>
+</tr>
+<tr class="border-t border-outline-variant/10">
+<td class="px-6 py-4"><span class="px-2 py-0.5 bg-secondary text-white text-[10px] font-bold rounded">GET</span></td>
+<td class="px-6 py-4 font-mono text-xs">/v1/jobs/{id}</td>
+<td class="px-6 py-4 text-on-surface/60">Retrieve the status and results of a specific job.</td>
+</tr>
+<tr class="border-t border-outline-variant/10">
+<td class="px-6 py-4"><span class="px-2 py-0.5 bg-secondary text-white text-[10px] font-bold rounded">GET</span></td>
+<td class="px-6 py-4 font-mono text-xs">/v1/history</td>
+<td class="px-6 py-4 text-on-surface/60">List all transcription jobs for the current account.</td>
+</tr>
+<tr class="border-t border-outline-variant/10">
+<td class="px-6 py-4"><span class="px-2 py-0.5 bg-error text-white text-[10px] font-bold rounded">DELETE</span></td>
+<td class="px-6 py-4 font-mono text-xs">/v1/jobs/{id}</td>
+<td class="px-6 py-4 text-on-surface/60">Permanently delete a record and its associated data.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Code Samples / Tabs -->
+<section class="space-y-6">
+<div class="flex items-center gap-6 border-b border-outline-variant/20">
+<button class="pb-3 text-sm font-bold border-b-2 border-primary text-primary">cURL</button>
+<button class="pb-3 text-sm font-medium text-on-surface/40 hover:text-on-surface transition-colors">JavaScript</button>
+<button class="pb-3 text-sm font-medium text-on-surface/40 hover:text-on-surface transition-colors">Python</button>
+<button class="pb-3 text-sm font-medium text-on-surface/40 hover:text-on-surface transition-colors">Ruby</button>
+</div>
+<div class="code-block p-8 font-mono text-[13px] leading-relaxed shadow-lg">
+<pre><code><span class="text-outline"># Create a transcription request</span>
+<span class="text-tertiary-fixed">curl</span> <span class="text-outline-variant">--request</span> POST \
+  <span class="text-outline-variant">--url</span> https://api.storytotext.com/v1/transcriptions \
+  <span class="text-outline-variant">--header</span> <span class="text-primary-fixed">'Authorization: Bearer {API_KEY}'</span> \
+  <span class="text-outline-variant">--header</span> <span class="text-primary-fixed">'Content-Type: application/json'</span> \
+  <span class="text-outline-variant">--data</span> '{
+    <span class="text-primary-fixed">"audio_url"</span>: <span class="text-primary-fixed">"https://example.com/audio.mp3"</span>,
+    <span class="text-primary-fixed">"language"</span>: <span class="text-primary-fixed">"en-US"</span>,
+    <span class="text-primary-fixed">"detect_speakers"</span>: <span class="text-tertiary-fixed">true</span>
+  }'</code></pre>
+</div>
+</section>
+<!-- AI Agent Integration / Bento Grid Style -->
+<section class="scroll-mt-24 pb-20" id="ai-agents">
+<h2 class="font-['Newsreader'] text-3xl mb-8">AI Agent Integration</h2>
+<div class="grid grid-cols-3 gap-6">
+<div class="col-span-2 bg-primary-fixed p-10 rounded-xl relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="font-['Newsreader'] text-2xl text-on-primary-fixed mb-4">The MCP Wrapper</h3>
+<p class="text-on-primary-fixed-variant text-sm leading-relaxed max-w-md">
+                                    Expose StoryToText to Claude, Codex, or GPT-4 through our Model Context Protocol wrapper. Allow your agents to "hear" audio files directly within their workspace.
+                                </p>
+<button class="mt-8 px-6 py-2.5 bg-on-primary-fixed text-white text-xs font-bold rounded hover:opacity-90 transition-opacity">
+                                    Get the SDK
+                                </button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-10 -right-10 text-[12rem] text-on-primary-fixed opacity-5">memory</span>
+</div>
+<div class="bg-surface-container-highest p-8 rounded-xl flex flex-col justify-center">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">hub</span>
+<h4 class="font-['Plus_Jakarta_Sans'] font-bold text-sm mb-2">Native Webhooks</h4>
+<p class="text-xs text-on-surface/60 leading-relaxed">Push final transcriptions directly into your Vector DB for RAG workflows.</p>
+</div>
+</div>
+<!-- Integration Overview -->
+<div class="mt-12 bg-surface-container-low border border-outline-variant/10 p-12 rounded-lg">
+<div class="flex flex-col md:flex-row gap-12 items-center">
+<div class="flex-1">
+<h3 class="font-['Newsreader'] text-2xl italic mb-4">"The Contextual Bridge"</h3>
+<p class="text-sm text-on-surface/70 leading-relaxed mb-6">
+                                    In modern AI development, the bottleneck isn't the model—it's the data quality. StoryToText provides timestamped, diarized JSON that models like Claude 3.5 can parse natively to understand the nuances of human interaction.
+                                </p>
+<ul class="space-y-4">
+<li class="flex items-center gap-3 text-xs font-bold tracking-tight">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+                                        AUTOMATIC SPEAKER IDENTIFICATION
+                                    </li>
+<li class="flex items-center gap-3 text-xs font-bold tracking-tight">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+                                        SENTIMENT SCORE PER UTTERANCE
+                                    </li>
+<li class="flex items-center gap-3 text-xs font-bold tracking-tight">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+                                        SUB-SECOND LATENCY FOR STREAMING
+                                    </li>
+</ul>
+</div>
+<div class="w-full md:w-1/3 aspect-square rounded-full overflow-hidden shadow-2xl ring-8 ring-surface-container">
+<img class="w-full h-full object-cover" data-alt="abstract artistic visualization of data flowing as fine golden threads connecting crystalline structures in a dark room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlcUonC4UV3aRCIpFpNfbaWAqCSmrZ9z9ZwF-u_rQmXwm1jFtD8HV6bLN9x3p7nTSXpwjYtVEmrCnyYmsg827KMkRGoq_mSP_0JTESb88_wx8OWD-DBwgYD9OESJpq4VGJXBXYby6lLqTV39qvNq1KfjF5hxZYe1DbG4FkxLH1Qk3vNtBkazapsE4uJKkGkiYctKVpLQTQRPGsKUO9ecKddXDmrOzRyWZ2Cfo4f1N2ZzECMt0YVbhmv8t3d4JqdeZIFybaYi4jCdo"/>
+</div>
+</div>
+</div>
+</section>
+</article>
+<!-- Right Sidebar: On This Page -->
+<aside class="w-48 hidden lg:block shrink-0">
+<div class="sticky top-24">
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-outline mb-6">On this page</h4>
+<ul class="space-y-4 text-[11px] font-medium text-on-surface/50 border-l border-outline-variant/20 pl-4">
+<li><a class="hover:text-primary transition-colors" href="#quickstart">How it works</a></li>
+<li><a class="hover:text-primary transition-colors" href="#authentication">Auth Header</a></li>
+<li><a class="hover:text-primary transition-colors" href="#endpoints">Endpoint Table</a></li>
+<li><a class="hover:text-primary transition-colors" href="#ai-agents">AI &amp; MCP</a></li>
+</ul>
+<div class="mt-16 p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
+<p class="text-[10px] text-on-surface/40 leading-relaxed italic mb-3">Need human help?</p>
+<a class="text-[11px] font-bold text-primary flex items-center gap-2" href="#">
+                            Talk to an Engineer
+                            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

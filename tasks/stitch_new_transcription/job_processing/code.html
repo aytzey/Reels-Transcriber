@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Job Processing - StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary-fixed": "#9defff",
+                "inverse-surface": "#30312e",
+                "on-surface-variant": "#54433c",
+                "primary": "#823b18",
+                "error": "#ba1a1a",
+                "inverse-on-surface": "#f2f1ec",
+                "on-secondary": "#ffffff",
+                "secondary": "#645d58",
+                "surface-container-highest": "#e4e2dd",
+                "on-primary-container": "#ffe1d6",
+                "primary-container": "#a0522d",
+                "surface-container-high": "#eae8e3",
+                "on-error": "#ffffff",
+                "surface-tint": "#944925",
+                "outline-variant": "#dac1b8",
+                "primary-fixed": "#ffdbcd",
+                "secondary-fixed-dim": "#cec5bf",
+                "tertiary": "#005863",
+                "on-surface": "#1b1c19",
+                "on-secondary-fixed": "#1f1b17",
+                "on-primary-fixed-variant": "#76320f",
+                "surface-container-lowest": "#ffffff",
+                "on-primary": "#ffffff",
+                "on-tertiary-fixed-variant": "#004f59",
+                "on-tertiary-container": "#aef2ff",
+                "surface": "#fbf9f4",
+                "surface-container": "#f0eee9",
+                "error-container": "#ffdad6",
+                "on-error-container": "#93000a",
+                "on-background": "#1b1c19",
+                "outline": "#87736b",
+                "on-secondary-container": "#6a635e",
+                "on-primary-fixed": "#360f00",
+                "background": "#fbf9f4",
+                "inverse-primary": "#ffb596",
+                "tertiary-container": "#007280",
+                "secondary-fixed": "#eae1da",
+                "surface-variant": "#e4e2dd",
+                "surface-dim": "#dcdad5",
+                "tertiary-fixed-dim": "#7fd3e3",
+                "surface-bright": "#fbf9f4",
+                "surface-container-low": "#f5f3ee",
+                "on-secondary-fixed-variant": "#4b4641",
+                "on-tertiary": "#ffffff",
+                "primary-fixed-dim": "#ffb596",
+                "on-tertiary-fixed": "#001f24",
+                "secondary-container": "#eae1da"
+              },
+              fontFamily: {
+                "headline": ["Newsreader", "serif"],
+                "body": ["Plus Jakarta Sans", "sans-serif"],
+                "label": ["Plus Jakarta Sans", "sans-serif"],
+                "instrument": ["Instrument Serif", "serif"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .active-glow {
+            box-shadow: 0 0 20px rgba(130, 59, 24, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
+<!-- TopNavBar Integration -->
+<nav class="fixed top-0 w-full z-50 bg-[#fbf9f4]/80 dark:bg-[#1b1c19]/80 backdrop-blur-md shadow-[0_20px_40px_rgba(27,28,25,0.05)]">
+<div class="flex justify-between items-center px-8 h-16 max-w-7xl mx-auto">
+<div class="text-xl font-bold font-['Newsreader'] text-[#1b1c19] dark:text-[#fbf9f4]">
+                StoryToText
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#1b1c19]/70 dark:text-[#fbf9f4]/70 hover:text-[#823b18] font-['Newsreader'] font-medium text-sm tracking-tight transition-colors duration-200" href="#">Product</a>
+<a class="text-[#1b1c19]/70 dark:text-[#fbf9f4]/70 hover:text-[#823b18] font-['Newsreader'] font-medium text-sm tracking-tight transition-colors duration-200" href="#">Pricing</a>
+<a class="text-[#1b1c19]/70 dark:text-[#fbf9f4]/70 hover:text-[#823b18] font-['Newsreader'] font-medium text-sm tracking-tight transition-colors duration-200" href="#">Developers</a>
+<a class="text-[#823b18] dark:text-[#ffdbcd] font-semibold border-b-2 border-[#823b18] font-['Newsreader'] text-sm tracking-tight" href="#">Resources</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#1b1c19]/70 dark:text-[#fbf9f4]/70 hover:text-[#823b18] font-['Newsreader'] font-medium text-sm transition-colors duration-200">Log In</button>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-md font-['Newsreader'] font-medium text-sm hover:opacity-90 transition-all active:scale-[0.99]">Get Started</button>
+</div>
+</div>
+</nav>
+<!-- SideNavBar Integration -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#f5f3ee] dark:bg-[#1b1c19] flex flex-col py-6 z-40 hidden lg:flex">
+<div class="px-8 mb-10">
+<h1 class="text-lg font-['Newsreader'] italic text-[#1b1c19] dark:text-[#fbf9f4]">StoryToText</h1>
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-label">Premium Transcription</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body text-[0.875rem]">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-[#ffffff] dark:bg-[#2a2b26] text-[#823b18] dark:text-[#ffdbcd] font-bold rounded-md px-4 py-2 shadow-sm transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-body text-[0.875rem]">New Transcription</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-body text-[0.875rem]">History</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="key">key</span>
+<span class="font-body text-[0.875rem]">API Keys</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-body text-[0.875rem]">Billing</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body text-[0.875rem]">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-on-primary-container py-3 rounded-md font-bold text-sm hover:opacity-90 transition-all">Upgrade Plan</button>
+<div class="space-y-1">
+<a class="flex items-center gap-3 text-[#1b1c19]/60 px-4 py-1 text-xs" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="menu_book">menu_book</span>
+                    Documentation
+                </a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 px-4 py-1 text-xs" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+                    Support
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-16 min-h-screen bg-surface">
+<!-- TopAppBar Header -->
+<header class="flex justify-between items-center w-full px-10 h-20 bg-surface">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined lg:hidden" data-icon="menu">menu</span>
+<h2 class="font-instrument text-4xl text-primary italic leading-none">Job Processing</h2>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-on-surface/40 hover:opacity-70 cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-on-surface/40 hover:opacity-70 cursor-pointer" data-icon="account_circle">account_circle</span>
+</div>
+</header>
+<!-- Editorial Content Area -->
+<section class="max-w-5xl mx-auto px-10 py-12">
+<!-- Job Identity Card -->
+<div class="bg-surface-container-lowest p-10 shadow-[0_20px_40px_rgba(27,28,25,0.05)] rounded-lg mb-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/3 h-full bg-primary/5 -skew-x-12 translate-x-1/2"></div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div>
+<span class="label-md uppercase tracking-widest text-primary/60 font-bold text-xs mb-2 block">Current Active Task</span>
+<h3 class="font-instrument text-5xl text-on-surface mb-4">The Future of Generative Storytelling</h3>
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm" data-icon="link">link</span>
+<code class="text-sm font-mono opacity-70">youtube.com/watch?v=dQw4w9WgXcQ</code>
+</div>
+</div>
+<div class="text-right">
+<div class="flex items-center justify-end gap-2 text-primary mb-1">
+<span class="material-symbols-outlined text-base animate-pulse" data-icon="schedule">schedule</span>
+<span class="font-bold text-2xl font-body">34</span>
+<span class="text-sm font-medium uppercase tracking-tighter">seconds left</span>
+</div>
+<p class="text-xs text-on-surface-variant italic">Estimated completion time</p>
+</div>
+</div>
+</div>
+<!-- Visual Horizontal Stepper -->
+<div class="bg-surface-container-low p-12 rounded-lg mb-8">
+<div class="relative">
+<!-- Connector Line Base -->
+<div class="absolute top-5 left-0 w-full h-[2px] bg-outline-variant/30"></div>
+<!-- Connector Line Active Progress -->
+<div class="absolute top-5 left-0 w-3/4 h-[2px] bg-primary transition-all duration-1000 ease-in-out"></div>
+<!-- Steps -->
+<div class="relative flex justify-between">
+<!-- Step 1: Validating (Completed) -->
+<div class="flex flex-col items-center gap-4 group">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-xl" data-icon="check">check</span>
+</div>
+<span class="font-label text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-bold">Validating</span>
+</div>
+<!-- Step 2: Fetching (Completed) -->
+<div class="flex flex-col items-center gap-4 group">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-xl" data-icon="check">check</span>
+</div>
+<span class="font-label text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-bold">Fetching</span>
+</div>
+<!-- Step 3: Downloading (Completed) -->
+<div class="flex flex-col items-center gap-4 group">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center z-10 shadow-sm transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-xl" data-icon="check">check</span>
+</div>
+<span class="font-label text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-bold">Downloading</span>
+</div>
+<!-- Step 4: Transcribing (Active) -->
+<div class="flex flex-col items-center gap-4 group">
+<div class="relative z-10 active-glow">
+<div class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center border-2 border-primary overflow-hidden">
+<div class="absolute inset-0 shimmer opacity-40"></div>
+<span class="material-symbols-outlined text-xl animate-spin" data-icon="sync" style="animation-duration: 3s;">sync</span>
+</div>
+</div>
+<span class="font-label text-[0.65rem] uppercase tracking-widest text-primary font-extrabold">Transcribing</span>
+</div>
+<!-- Step 5: Preparing Export (Pending) -->
+<div class="flex flex-col items-center gap-4 group opacity-40">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant/40 flex items-center justify-center z-10 border-2 border-outline-variant/20">
+<span class="material-symbols-outlined text-xl" data-icon="pending">pending</span>
+</div>
+<span class="font-label text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-bold">Preparing export</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Grid for Trust Building -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-start mt-16">
+<!-- Message & Action Column -->
+<div class="md:col-span-5 space-y-8">
+<div class="bg-primary-fixed/30 p-8 rounded-lg border-l-4 border-primary">
+<div class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-1" data-icon="info">info</span>
+<div>
+<p class="font-body text-on-primary-fixed-variant text-base leading-relaxed">
+                                    You can leave this page — find your job in <span class="font-bold border-b border-primary/30">History</span> once complete.
+                                </p>
+<p class="text-sm text-on-primary-fixed-variant/60 mt-2 italic">We'll send you an email notification as soon as it's ready.</p>
+</div>
+</div>
+</div>
+<button class="flex items-center justify-center gap-3 w-full py-4 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold text-sm rounded-md transition-all uppercase tracking-widest">
+<span class="material-symbols-outlined text-lg" data-icon="arrow_back">arrow_back</span>
+                        Back to Dashboard
+                    </button>
+</div>
+<!-- Secondary Info / Visual Column -->
+<div class="md:col-span-7 space-y-12">
+<div class="relative aspect-video rounded-lg overflow-hidden shadow-xl bg-surface-container-highest">
+<img alt="close-up of a high-end recording studio microphone in warm ambient lighting with blurred background" class="w-full h-full object-cover opacity-60 grayscale hover:grayscale-0 transition-all duration-700" data-alt="close-up of a high-end recording studio microphone in warm ambient lighting with blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLvfkaMyg3WAeSpr5EwCk1x3JVR02VWdwgUcoXkKdTlXc3V9Glt8S0OjGZEsrwN7kvpAajLKVDekCYTszCGlA7tg5n1Zs3TS0JCg1vC_nMxAAKP2rDshlRhjqaDXWu_QgZsEJjPoe_44lidt8XeJ-rQJIZGwQij-CHa_JrqNkft-WgWxDTkeAQ59Pe6j4I2IivnvtH389fh-uz-T4AUZegmFlN7xk0G-t86HBJAIukkieQ9LiX6RCqQTMAc3Ay2vLFa5Jiw3piV1M"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<span class="label-md text-primary font-bold bg-primary-fixed px-3 py-1 rounded-full text-[0.6rem]">Pro Tip</span>
+<p class="font-instrument text-2xl text-on-surface mt-2 leading-tight">Leverage our API for bulk transcription workflows.</p>
+</div>
+</div>
+<div class="border-t border-outline-variant/10 pt-8 flex gap-8">
+<div class="flex-1">
+<h4 class="font-label text-[0.65rem] uppercase tracking-widest font-bold text-on-surface mb-3">Audio Quality</h4>
+<div class="flex gap-1">
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-primary rounded-full"></div>
+<div class="h-1 flex-1 bg-primary/20 rounded-full"></div>
+</div>
+<p class="text-[0.65rem] text-on-surface-variant mt-2">High Fidelity (44.1kHz)</p>
+</div>
+<div class="flex-1">
+<h4 class="font-label text-[0.65rem] uppercase tracking-widest font-bold text-on-surface mb-3">Security Level</h4>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm" data-icon="encrypted" data-weight="fill">encrypted</span>
+<span class="text-[0.65rem] font-bold">End-to-End Encrypted</span>
+</div>
+<p class="text-[0.65rem] text-on-surface-variant mt-2">ISO 27001 Certified</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual FAB - Only for Dashboard/Home, but included as per instructions if it were required for flow -->
+<!-- Hidden here as this is a focused Task screen -->
+</body></html>

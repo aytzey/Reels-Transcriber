@@ -1,4 +1,4 @@
-"""Output formatting — Markdown, plain text, JSON, and TXT file export."""
+"""Output formatting for in-app display and file exports."""
 
 from __future__ import annotations
 
@@ -8,27 +8,18 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from .transcriber import MODEL_NAME
 
 _log = logging.getLogger("reels_transcriber.formatter")
+_DEFAULT_PROCESSOR_LABEL = "Whisper"
 
 
 def format_results(
     results: list[dict],
     title: str,
     output_dir: Path,
+    processor_label: str = _DEFAULT_PROCESSOR_LABEL,
 ) -> tuple[str, str, str]:
-    """Format transcription results and write export files.
-
-    Returns
-    -------
-    markdown : str
-        Full Markdown document for in-app display.
-    json_path : str
-        Path to the exported JSON file.
-    txt_path : str
-        Path to the exported plain-text file.
-    """
+    """Format transcription results and write export files."""
     if not results:
         return "No results to display.", "", ""
 
@@ -37,15 +28,15 @@ def format_results(
     md_parts: list[str] = []
     txt_parts: list[str] = []
 
-    for idx, r in enumerate(results, 1):
-        if not isinstance(r, dict):
+    for idx, result in enumerate(results, 1):
+        if not isinstance(result, dict):
             continue
 
-        name = r.get("shortcode") or r.get("filename") or f"video_{idx}"
-        date = r.get("date") or ""
-        caption = r.get("caption") or ""
-        url = r.get("url") or ""
-        transcription = r.get("transcription") or "(no transcription)"
+        name = result.get("shortcode") or result.get("filename") or f"video_{idx}"
+        date = result.get("date") or ""
+        caption = result.get("caption") or ""
+        url = result.get("url") or ""
+        transcription = result.get("transcription") or "(no transcription)"
 
         md = f"### {idx}. {name}\n"
         if date:
@@ -69,11 +60,12 @@ def format_results(
         txt_parts.append(txt)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    processor = processor_label or _DEFAULT_PROCESSOR_LABEL
 
     markdown = (
         f"# {title}\n\n"
         f"**Total:** {len(results)} videos  \n"
-        f"**Model:** {MODEL_NAME}  \n"
+        f"**Processor:** {processor}  \n"
         f"**Date:** {now}\n\n---\n\n"
         + "\n".join(md_parts)
     )
@@ -95,7 +87,7 @@ def format_results(
         txt_path = output_dir / f"{safe}_transcripts.txt"
         txt_path.write_text(
             f"{title}\nTotal: {len(results)} videos\n"
-            f"Model: {MODEL_NAME}\nDate: {now}\n{'=' * 60}\n\n{plain}",
+            f"Processor: {processor}\nDate: {now}\n{'=' * 60}\n\n{plain}",
             encoding="utf-8",
         )
     except OSError as exc:

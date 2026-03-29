@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>History - StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#9defff",
+              "inverse-surface": "#30312e",
+              "on-surface-variant": "#54433c",
+              "primary": "#823b18",
+              "error": "#ba1a1a",
+              "inverse-on-surface": "#f2f1ec",
+              "on-secondary": "#ffffff",
+              "secondary": "#645d58",
+              "surface-container-highest": "#e4e2dd",
+              "on-primary-container": "#ffe1d6",
+              "primary-container": "#a0522d",
+              "surface-container-high": "#eae8e3",
+              "on-error": "#ffffff",
+              "surface-tint": "#944925",
+              "outline-variant": "#dac1b8",
+              "primary-fixed": "#ffdbcd",
+              "secondary-fixed-dim": "#cec5bf",
+              "tertiary": "#005863",
+              "on-surface": "#1b1c19",
+              "on-secondary-fixed": "#1f1b17",
+              "on-primary-fixed-variant": "#76320f",
+              "surface-container-lowest": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#004f59",
+              "on-tertiary-container": "#aef2ff",
+              "surface": "#fbf9f4",
+              "surface-container": "#f0eee9",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "on-background": "#1b1c19",
+              "outline": "#87736b",
+              "on-secondary-container": "#6a635e",
+              "on-primary-fixed": "#360f00",
+              "background": "#fbf9f4",
+              "inverse-primary": "#ffb596",
+              "tertiary-container": "#007280",
+              "secondary-fixed": "#eae1da",
+              "surface-variant": "#e4e2dd",
+              "surface-dim": "#dcdad5",
+              "tertiary-fixed-dim": "#7fd3e3",
+              "surface-bright": "#fbf9f4",
+              "surface-container-low": "#f5f3ee",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#ffb596",
+              "on-tertiary-fixed": "#001f24",
+              "secondary-container": "#eae1da"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .editorial-shadow {
+            box-shadow: 0 20px 40px rgba(27, 28, 25, 0.05);
+        }
+        body {
+            background-color: #fbf9f4;
+            color: #1b1c19;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 bg-[#f5f3ee] dark:bg-[#1b1c19] w-64 border-r-0 z-50">
+<div class="px-8 mb-10">
+<h1 class="text-lg font-['Newsreader'] italic text-[#1b1c19] dark:text-[#fbf9f4]">StoryToText</h1>
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface/40 mt-1">Premium Transcription</p>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-[0.875rem]">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="text-[0.875rem]">New Transcription</span>
+</a>
+<a class="flex items-center gap-3 bg-[#ffffff] dark:bg-[#2a2b26] text-[#823b18] dark:text-[#ffdbcd] font-bold rounded-md px-4 py-2 shadow-sm transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-[0.875rem]">History</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="key">key</span>
+<span class="text-[0.875rem]">API Keys</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-[0.875rem]">Billing</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-[0.875rem]">Settings</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-3 px-4 rounded-md text-sm font-medium editorial-shadow hover:opacity-90 transition-opacity">
+                Upgrade Plan
+            </button>
+<div class="mt-8 space-y-3">
+<a class="flex items-center gap-3 text-[#1b1c19]/60 text-xs px-2 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="menu_book">menu_book</span>
+<span>Documentation</span>
+</a>
+<a class="flex items-center gap-3 text-[#1b1c19]/60 text-xs px-2 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen bg-surface">
+<!-- TopAppBar (Shared Component Integration) -->
+<header class="flex justify-between items-center w-full px-12 h-24 bg-[#fbf9f4]">
+<div>
+<h2 class="font-headline text-3xl text-on-surface">History</h2>
+<p class="font-label text-[0.65rem] uppercase tracking-[0.2em] text-on-surface/40 mt-1">Archive of all past transcriptions</p>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface/60 hover:text-primary cursor-pointer transition-colors" data-icon="notifications">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-outline-variant/20">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface">Eleanor Vance</p>
+<p class="text-[0.6rem] text-on-surface/50 uppercase tracking-widest">Pro Member</p>
+</div>
+<span class="material-symbols-outlined text-3xl text-on-surface/20" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Editorial Content Area -->
+<section class="px-12 pb-20">
+<!-- Filters & Search Bar Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+<div class="flex gap-8 items-center border-b border-outline-variant/10 pb-2">
+<button class="font-label text-[0.7rem] uppercase tracking-widest text-primary border-b-2 border-primary pb-2 -mb-[10px]">All</button>
+<button class="font-label text-[0.7rem] uppercase tracking-widest text-on-surface/40 hover:text-on-surface transition-colors pb-2 -mb-[10px]">Completed</button>
+<button class="font-label text-[0.7rem] uppercase tracking-widest text-on-surface/40 hover:text-on-surface transition-colors pb-2 -mb-[10px]">Processing</button>
+<button class="font-label text-[0.7rem] uppercase tracking-widest text-on-surface/40 hover:text-on-surface transition-colors pb-2 -mb-[10px]">Failed</button>
+</div>
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/30 text-lg" data-icon="search">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-md py-3 pl-12 pr-4 text-sm focus:outline-none focus:border-primary/40 transition-all placeholder:text-on-surface/30" placeholder="Search by job name..." type="text"/>
+</div>
+</div>
+<!-- Job List Table / Asymmetric Layout -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden editorial-shadow">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-8 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50">Job Name</th>
+<th class="px-6 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50">Source</th>
+<th class="px-6 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50 text-center">Status</th>
+<th class="px-6 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50">Created At</th>
+<th class="px-6 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50">Duration</th>
+<th class="px-6 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50">Origin</th>
+<th class="px-8 py-5 font-label text-[0.65rem] uppercase tracking-widest text-on-surface/50 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1: Completed -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<p class="font-headline text-lg text-on-surface leading-tight">Podcast Episode #42: Modern Ethics</p>
+<p class="text-[0.7rem] text-on-surface/40 mt-1">ID: ST-99823420</p>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/60" data-icon="mic">mic</span>
+<span class="text-sm">MP3 Audio</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider bg-primary-fixed text-on-primary-fixed-variant">Completed</span>
+</td>
+<td class="px-6 py-6 text-sm text-on-surface/70">Oct 24, 2023 <span class="block text-[0.65rem] opacity-50">14:20 PM</span></td>
+<td class="px-6 py-6 text-sm font-medium">48:12</td>
+<td class="px-6 py-6">
+<span class="material-symbols-outlined text-on-surface/30" data-icon="language" title="Web Dashboard">language</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-surface-container-high rounded text-on-surface/60 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded text-on-surface/60 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Processing -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<p class="font-headline text-lg text-on-surface leading-tight">Board Meeting Recording</p>
+<p class="text-[0.7rem] text-on-surface/40 mt-1">ID: ST-99823421</p>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="videocam">videocam</span>
+<span class="text-sm">Zoom MP4</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">Processing</span>
+</td>
+<td class="px-6 py-6 text-sm text-on-surface/70">Oct 25, 2023 <span class="block text-[0.65rem] opacity-50">09:15 AM</span></td>
+<td class="px-6 py-6 text-sm font-medium">—</td>
+<td class="px-6 py-6">
+<span class="material-symbols-outlined text-on-surface/30" data-icon="api" title="API Integration">api</span>
+</td>
+<td class="px-8 py-6 text-right">
+<span class="text-xs text-on-surface/40 italic">In queue...</span>
+</td>
+</tr>
+<!-- Row 3: Failed -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<p class="font-headline text-lg text-on-surface leading-tight">Interview with Dr. Aris</p>
+<p class="text-[0.7rem] text-on-surface/40 mt-1">ID: ST-99823422</p>
+</td>
+<td class="px-6 py-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary/60" data-icon="link">link</span>
+<span class="text-sm">YouTube URL</span>
+</div>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider bg-error-container text-on-error-container">Failed</span>
+</td>
+<td class="px-6 py-6 text-sm text-on-surface/70">Oct 23, 2023 <span class="block text-[0.65rem] opacity-50">18:45 PM</span></td>
+<td class="px-6 py-6 text-sm font-medium">15:00</td>
+<td class="px-6 py-6">
+<span class="material-symbols-outlined text-on-surface/30" data-icon="language" title="Web Dashboard">language</span>
+</td>
+<td class="px-8 py-6 text-right">
+<div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-surface-container-high rounded text-error transition-colors">
+<span class="material-symbols-outlined text-lg" data-icon="refresh">refresh</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Optional Pagination / Footer Context -->
+<div class="mt-10 flex justify-between items-center px-4">
+<p class="text-xs text-on-surface/40">Showing 1-10 of 124 transcription jobs</p>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded bg-primary text-on-primary font-bold text-xs">1</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors text-xs">2</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors text-xs">3</button>
+<button class="w-10 h-10 flex items-center justify-center rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- SECTION: Empty State (Hidden by default, shown when list is empty) -->
+<div class="hidden flex-col items-center justify-center py-32 text-center bg-surface-container-lowest/50 rounded-2xl border border-dashed border-outline-variant/30 mt-12">
+<div class="w-64 h-64 mb-8">
+<img alt="No jobs found" class="w-full h-full object-contain grayscale opacity-60" data-alt="minimalist architectural sketch of an empty library hall with soft morning light and long shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4J7lQoYyRNaB_u45R_8_XYDkgJcWoe99Q-AGDguGqK77ln85lUnLfGX5kHCJ3bjo_XYCtv4k5lCJNWS9ghfvsi0M1f-W3JR2uPJonyChWkarvVYI6eMBd2uG-jOAhIYR8mtrrMilz_baV4y1DXdZZ_P52hnEzBFdqR5ecUnDHyWbi-SuCRc1vAIOiAs6kpSmprxJQcI0vmZRphog9MoJAWfShqGZ5GjW5g5giylFch_oRJdlcGgqaiFa1ra0LNuWaVBkeVkpdt1Y"/>
+</div>
+<h3 class="font-headline text-2xl text-on-surface mb-2">No transcription jobs found</h3>
+<p class="text-on-surface/50 max-w-sm mb-8">It looks like your archive is currently empty. Start your first transcription to see it appear here.</p>
+<button class="bg-primary text-on-primary px-8 py-3 rounded-md font-medium flex items-center gap-2 hover:opacity-90 transition-opacity mx-auto">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    Create New Job
+                </button>
+</div>
+</section>
+</main>
+<!-- FAB Suppression: This is a details/list view, so we don't render a primary FAB here as per instructions -->
+</body></html>

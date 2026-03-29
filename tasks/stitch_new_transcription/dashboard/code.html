@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StoryToText Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed": "#9defff",
+                        "inverse-surface": "#30312e",
+                        "on-surface-variant": "#54433c",
+                        "primary": "#823b18",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#f2f1ec",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#645d58",
+                        "surface-container-highest": "#e4e2dd",
+                        "on-primary-container": "#ffe1d6",
+                        "primary-container": "#a0522d",
+                        "surface-container-high": "#eae8e3",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#944925",
+                        "outline-variant": "#dac1b8",
+                        "primary-fixed": "#ffdbcd",
+                        "secondary-fixed-dim": "#cec5bf",
+                        "tertiary": "#005863",
+                        "on-surface": "#1b1c19",
+                        "on-secondary-fixed": "#1f1b17",
+                        "on-primary-fixed-variant": "#76320f",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004f59",
+                        "on-tertiary-container": "#aef2ff",
+                        "surface": "#fbf9f4",
+                        "surface-container": "#f0eee9",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1b1c19",
+                        "outline": "#87736b",
+                        "on-secondary-container": "#6a635e",
+                        "on-primary-fixed": "#360f00",
+                        "background": "#fbf9f4",
+                        "inverse-primary": "#ffb596",
+                        "tertiary-container": "#007280",
+                        "secondary-fixed": "#eae1da",
+                        "surface-variant": "#e4e2dd",
+                        "surface-dim": "#dcdad5",
+                        "tertiary-fixed-dim": "#7fd3e3",
+                        "surface-bright": "#fbf9f4",
+                        "surface-container-low": "#f5f3ee",
+                        "on-secondary-fixed-variant": "#4b4641",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed-dim": "#ffb596",
+                        "on-tertiary-fixed": "#001f24",
+                        "secondary-container": "#eae1da"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fbf9f4;
+            color: #1b1c19;
+        }
+        .serif-text {
+            font-family: 'Newsreader', serif;
+        }
+    </script>
+</head>
+<body class="bg-surface selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
+
+    <!-- SideNavBar (Predicted Component) -->
+    <aside class="fixed left-0 top-0 h-full flex flex-col py-6 bg-[#f5f3ee] dark:bg-[#1b1c19] h-screen w-64 border-r-0 z-40">
+        <div class="px-8 mb-10">
+            <h1 class="text-lg font-['Newsreader'] italic text-[#1b1c19] dark:text-[#fbf9f4]">StoryToText</h1>
+            <p class="text-[0.65rem] uppercase tracking-widest text-on-surface-variant/60 font-medium">Premium Transcription</p>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-1">
+            <!-- Active Tab: Dashboard -->
+            <a href="#" class="flex items-center gap-3 bg-[#ffffff] dark:bg-[#2a2b26] text-[#823b18] dark:text-[#ffdbcd] font-bold rounded-md px-4 py-2 shadow-sm transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">New Transcription</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="history">history</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">History</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="key">key</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">API Keys</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="payments">payments</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">Billing</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-2 hover:bg-[#ffffff]/50 transition-all duration-300 ease-in-out">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span class="font-['Plus_Jakarta_Sans'] text-[0.875rem]">Settings</span>
+            </a>
+        </nav>
+
+        <div class="px-4 mt-auto space-y-4">
+            <div class="bg-surface-container rounded-lg p-4 mb-4">
+                <p class="text-[0.7rem] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Current Plan</p>
+                <button class="w-full bg-primary-container text-on-primary-container py-2 rounded-md font-bold text-xs hover:opacity-90 transition-opacity">
+                    Upgrade Plan
+                </button>
+            </div>
+            <div class="space-y-1">
+                <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-1 text-sm hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-lg" data-icon="menu_book">menu_book</span>
+                    <span>Documentation</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 text-[#1b1c19]/60 dark:text-[#fbf9f4]/60 px-4 py-1 text-sm hover:text-primary transition-colors">
+                    <span class="material-symbols-outlined text-lg" data-icon="help_outline">help_outline</span>
+                    <span>Support</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- TopAppBar (Predicted Component) -->
+    <header class="flex justify-between items-center w-full px-10 h-20 ml-64 fixed top-0 bg-[#fbf9f4] dark:bg-[#1b1c19] z-30">
+        <div class="flex items-center gap-4">
+            <button class="material-symbols-outlined text-[#823b18] hover:opacity-70 transition-opacity" data-icon="menu">menu</button>
+            <h2 class="font-['Newsreader'] text-2xl text-[#823b18]">Dashboard</h2>
+        </div>
+        <div class="flex items-center gap-6">
+            <button class="material-symbols-outlined text-[#1b1c19]/40 hover:opacity-70 transition-opacity" data-icon="notifications">notifications</button>
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p class="font-['Plus_Jakarta_Sans'] text-xs font-bold uppercase tracking-widest text-[#1b1c19]">Julian Barnes</p>
+                    <p class="font-['Plus_Jakarta_Sans'] text-[10px] text-on-surface-variant/60">Professional Plan</p>
+                </div>
+                <span class="material-symbols-outlined text-3xl text-[#1b1c19]/40" data-icon="account_circle">account_circle</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="ml-64 pt-24 px-10 pb-12 min-h-screen">
+        
+        <!-- Action Row -->
+        <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div class="max-w-xl">
+                <h3 class="display-lg serif-text leading-tight mb-2">Welcome back, Archivist.</h3>
+                <p class="body-md text-on-surface-variant">Your studio is ready. Ready to transform your spoken stories into timeless text records?</p>
+            </div>
+            <button class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-4 rounded-md shadow-lg flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined" data-icon="add_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+                <span class="font-bold tracking-tight">New Transcription</span>
+            </button>
+        </div>
+
+        <!-- Stats & Usage Bento Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
+            
+            <!-- Usage Card -->
+            <div class="md:col-span-8 bg-surface-container-low rounded-xl p-8 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="label-md text-on-surface-variant opacity-60">Usage Overview</span>
+                            <h4 class="title-lg serif-text mt-1 italic">Credits & Minutes Used</h4>
+                        </div>
+                        <span class="material-symbols-outlined text-primary-container" data-icon="speed">speed</span>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="body-md font-semibold">428 <span class="opacity-50 font-normal">/ 1,200 min</span></span>
+                                <span class="label-md font-bold text-primary">35.6%</span>
+                            </div>
+                            <div class="h-3 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                                <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: 35.6%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="p-4 bg-surface rounded-lg">
+                                <p class="label-md opacity-60 mb-1">Web Platform</p>
+                                <p class="title-lg font-bold">312 min</p>
+                            </div>
+                            <div class="p-4 bg-surface rounded-lg">
+                                <p class="label-md opacity-60 mb-1">API Integration</p>
+                                <p class="title-lg font-bold">116 min</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Insight / Developer Card -->
+            <div class="md:col-span-4 bg-primary-container text-on-primary-container rounded-xl p-8 relative overflow-hidden group">
+                <div class="relative z-10">
+                    <span class="label-md opacity-80 uppercase tracking-[0.2em]">Dev Health</span>
+                    <h4 class="title-lg serif-text mt-4 mb-2">API Response Rate</h4>
+                    <p class="text-6xl font-headline font-bold mb-4">99.8%</p>
+                    <p class="body-md opacity-90 leading-relaxed">Your custom endpoints are performing optimally with a 120ms average latency.</p>
+                </div>
+                <!-- Abstract visual element instead of divider -->
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-on-primary-container opacity-5 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+            </div>
+        </div>
+
+        <!-- Recent Jobs Section -->
+        <section class="mb-12">
+            <div class="flex justify-between items-baseline mb-8">
+                <h3 class="headline-md serif-text">Recent Jobs</h3>
+                <a href="#" class="label-md text-primary font-bold hover:underline">View All Records</a>
+            </div>
+
+            <div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(27,28,25,0.05)]">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-surface-container-low">
+                        <tr>
+                            <th class="px-8 py-4 label-md opacity-50 font-bold uppercase tracking-widest">Transcription Name</th>
+                            <th class="px-4 py-4 label-md opacity-50 font-bold uppercase tracking-widest">Platform</th>
+                            <th class="px-4 py-4 label-md opacity-50 font-bold uppercase tracking-widest text-center">Status</th>
+                            <th class="px-4 py-4 label-md opacity-50 font-bold uppercase tracking-widest">Created</th>
+                            <th class="px-8 py-4 label-md opacity-50 font-bold uppercase tracking-widest text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-container">
+                        <!-- Job 1 -->
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+                                    <span class="body-md font-semibold">Summer Solstice Editorial.mp4</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="video_library">video_library</span>
+                                    <span class="body-md opacity-70">YouTube</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-tertiary-fixed text-on-tertiary-fixed-variant">Completed</span>
+                            </td>
+                            <td class="px-4 py-5 body-md opacity-50">2 hours ago</td>
+                            <td class="px-8 py-5 text-right">
+                                <button class="text-primary font-bold label-md hover:underline uppercase">View</button>
+                            </td>
+                        </tr>
+                        <!-- Job 2 -->
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+                                    <span class="body-md font-semibold">Morning Brew Podcast Ep. 42</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="podcasts">podcasts</span>
+                                    <span class="body-md opacity-70">Spotify</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-primary-fixed text-on-primary-fixed-variant">Processing</span>
+                            </td>
+                            <td class="px-4 py-5 body-md opacity-50">4 hours ago</td>
+                            <td class="px-8 py-5 text-right text-on-surface-variant opacity-40">
+                                <span class="material-symbols-outlined animate-pulse" data-icon="sync">sync</span>
+                            </td>
+                        </tr>
+                        <!-- Job 3 -->
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+                                    <span class="body-md font-semibold">Street Style Reel #04</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="movie">movie</span>
+                                    <span class="body-md opacity-70">Reels</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-tertiary-fixed text-on-tertiary-fixed-variant">Completed</span>
+                            </td>
+                            <td class="px-4 py-5 body-md opacity-50">Yesterday</td>
+                            <td class="px-8 py-5 text-right">
+                                <button class="text-primary font-bold label-md hover:underline uppercase">View</button>
+                            </td>
+                        </tr>
+                        <!-- Job 4 -->
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+                                    <span class="body-md font-semibold">Technical Doc Interview 1</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="api">api</span>
+                                    <span class="body-md opacity-70">API Call</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-error-container text-on-error-container">Failed</span>
+                            </td>
+                            <td class="px-4 py-5 body-md opacity-50">Sept 12, 2023</td>
+                            <td class="px-8 py-5 text-right">
+                                <button class="text-error font-bold label-md hover:underline uppercase">Retry</button>
+                            </td>
+                        </tr>
+                        <!-- Job 5 -->
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="material-symbols-outlined text-primary/40" data-icon="description">description</span>
+                                    <span class="body-md font-semibold">Product Launch Keynote</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="laptop">laptop</span>
+                                    <span class="body-md opacity-70">TikTok</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-5 text-center">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold uppercase bg-tertiary-fixed text-on-tertiary-fixed-variant">Completed</span>
+                            </td>
+                            <td class="px-4 py-5 body-md opacity-50">Sept 11, 2023</td>
+                            <td class="px-8 py-5 text-right">
+                                <button class="text-primary font-bold label-md hover:underline uppercase">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Empty State Preview (Hidden for now, but provided as per request) -->
+        <div class="hidden flex flex-col items-center justify-center py-20 px-4 text-center">
+            <div class="w-64 h-64 mb-8 bg-surface-container rounded-full flex items-center justify-center relative">
+                <div class="w-48 h-48 rounded-full overflow-hidden grayscale opacity-30 mix-blend-multiply">
+                    <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=400" 
+                         alt="first transcription illustration" 
+                         data-alt="vintage quill pen resting on parchment paper with soft afternoon shadows and morning light"
+                         class="object-cover w-full h-full">
+                </div>
+                <div class="absolute inset-0 border-2 border-dashed border-outline-variant/30 rounded-full"></div>
+            </div>
+            <h4 class="headline-md serif-text mb-2">The Archives are Empty</h4>
+            <p class="body-md text-on-surface-variant max-w-sm mb-8">Begin your story by uploading your first audio or video file. Our AI is ready to listen.</p>
+            <button class="bg-primary text-on-primary px-8 py-3 rounded-md font-bold hover:bg-primary-container transition-colors">
+                Create your first transcript
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Floating Help Button (Design Detail) -->
+    <button class="fixed bottom-8 right-8 w-14 h-14 bg-surface-container-lowest shadow-xl rounded-full flex items-center justify-center text-primary hover:scale-110 transition-transform z-50">
+        <span class="material-symbols-outlined" data-icon="contact_support">contact_support</span>
+    </button>
+
+</body>
+</html></style></head><body></body></html>

@@ -1,37 +1,32 @@
-# Reels Transcriber
+# StoryToText
 
-GPU-accelerated speech-to-text pipeline for Instagram Reels and TikTok videos using OpenAI Whisper Large-v3.
+Editorial-style transcription workspace for YouTube, TikTok, Instagram Reels, uploaded media, and API-driven jobs.
 
-Enter a username or paste a video URL. The pipeline downloads the videos, extracts audio, runs batched inference on your GPU, and returns full transcripts. No login required for either platform.
+This repo now ships a local SaaS-style product shell inspired by the `tasks/stitch_new_transcription` references:
 
-![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue)
-![License MIT](https://img.shields.io/badge/license-MIT-green)
-![CUDA](https://img.shields.io/badge/CUDA-supported-brightgreen)
-![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-supported-brightgreen)
+- Public landing page
+- 3-step onboarding
+- Dashboard, New Transcription, History, Transcript Detail
+- Billing, Settings, API Keys, Developer Docs
+- Background transcription jobs with web + API entry points
+- Local persistent workspace state in `runtime_data/state.json`
 
-## Features
+The actual transcription pipeline still uses the existing Whisper-based backend modules in `reels_transcriber/`.
 
-- **Instagram Reels** — transcribe all reels from a profile or a single reel URL
-- **TikTok Videos** — transcribe all videos from a profile or a single video URL
-- **Whisper Large-v3** with SDPA attention — no Flash Attention dependency
-- **Hardware-aware inference** — auto-detects CUDA / Apple Silicon (MPS) / CPU, sets optimal dtype and batch size
-- **No login required** — works with public profiles on both platforms
-- **Proxy CDN download** — works behind corporate firewalls and SSL-inspecting proxies
-- **Batch file upload** — drag-and-drop your own video/audio files
-- **15+ languages** — auto-detection or manual selection
-- **Export** — JSON and TXT download
+## What Changed
 
-## Performance
+The old single-page Gradio UI has been replaced with a lightweight web app server and a custom frontend shell that matches the premium StoryToText direction from `tasks/`.
 
-Benchmarked on a real Instagram profile (12 reels, ~50 MB total video):
+Key additions:
 
-| Hardware | Transcription time | Per-reel average |
-|---|---|---|
-| RTX 3060 12 GB (CUDA, float16, batch 16) | **168 s** | **14 s** |
-| Apple M2 Pro (MPS, float32, batch 8) | ~5 min | ~25 s |
-| CPU-only (float32, batch 4) | ~20 min | ~100 s |
+- Real route-based app shell instead of one tabbed tool screen
+- Local job queue and archive history
+- Copy-once API key management
+- REST API endpoints for external automation
+- YouTube single-video and collection support via `yt-dlp`
+- Persistent user settings, onboarding state, billing metrics, and job records
 
-## Quick start
+## Quick Start
 
 ```bash
 git clone https://github.com/aytzey/reels-transcriber.git
@@ -40,118 +35,84 @@ cd reels-transcriber
 pip install -r requirements.txt
 playwright install chromium
 
-python app.py
+python3 app.py
 ```
 
-Open **http://localhost:7860** in your browser.
-The model (~3 GB) downloads automatically on first run.
-
-### Helper scripts (Linux / macOS)
-
-```bash
-./install.sh
-./run.sh
-```
+Open `http://127.0.0.1:7860`.
 
 Notes:
-- `install.sh` creates `.venv`, installs dependencies, and downloads Playwright Chromium.
-- On Linux, set `USE_CUDA=0` if you want CPU-only PyTorch even when `nvidia-smi` is present.
-- `ffmpeg` must already be installed on the system.
 
-### Platform-specific setup
+- The shell itself runs on the Python standard library server and starts without Gradio.
+- Actual transcription jobs still require the heavy runtime dependencies from `requirements.txt`.
+- `ffmpeg` must be installed on the host system.
+- Local app state is written under `runtime_data/`.
 
-**macOS (Apple Silicon)**
+## API Overview
+
+Create a key from the in-app **API Keys** page, then use:
+
 ```bash
-pip install -r requirements.txt
-playwright install chromium
+curl -X POST http://127.0.0.1:7860/api/v1/transcriptions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "single_url",
+    "source_value": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "platform_hint": "youtube",
+    "language": "en",
+    "model": "distil-large-v3 (fast)"
+  }'
 ```
 
-**Linux / Windows (NVIDIA GPU)**
+Then poll:
+
 ```bash
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install -r requirements.txt
-playwright install chromium
+curl http://127.0.0.1:7860/api/v1/jobs/JOB_ID \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-## Architecture
+And retrieve the result:
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                        Gradio Web UI                             │
-│  ┌──────────┐ ┌────────────┐ ┌──────────────┐ ┌──────────────┐ │
-│  │Single URL│ │IG Profile  │ │TikTok Profile│ │Upload Files  │ │
-│  └────┬─────┘ └─────┬──────┘ └──────┬───────┘ └──────┬───────┘ │
-└───────┼─────────────┼───────────────┼────────────────┼──────────┘
-        │             │               │                │
-        ▼             ▼               ▼                │
-   ┌─────────┐  ┌──────────┐  ┌───────────┐           │
-   │IG: igram│  │IG: igram │  │TT: tikwm  │           │
-   │TT: tikwm│  │ profile  │  │ profile   │           │
-   │ convert │  │ scrape   │  │ scrape    │           │
-   └────┬────┘  └────┬─────┘  └─────┬─────┘           │
-        │             │              │                  │
-        └──────────┬──┴──────────────┘                  │
-                   ▼                                    ▼
-        ┌─────────────────────────────────────────────────────┐
-        │                  transcriber.py                       │
-        │  ffmpeg (16 kHz WAV) → Whisper Large-v3              │
-        │  30s chunks × batch_size → SDPA attention            │
-        └──────────────────────┬──────────────────────────────┘
-                               ▼
-        ┌─────────────────────────────────────────────────────┐
-        │  formatter.py  →  Markdown  ·  JSON  ·  TXT         │
-        └─────────────────────────────────────────────────────┘
-
-Hardware abstraction (device.py):
-  CUDA  →  float16, batch 16–24
-  MPS   →  float32, batch 8
-  CPU   →  float32, batch 4
+```bash
+curl http://127.0.0.1:7860/api/v1/jobs/JOB_ID/result \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-## How it works
+## Project Structure
 
-**Instagram** — Playwright drives a headless Chromium browser to a web service (igram.world). It intercepts API responses to get post lists (with cursor-based pagination) and signed proxy CDN URLs for each video. Downloads go through the proxy, so the pipeline works even behind firewalls that block `cdninstagram.com`.
-
-**TikTok** — Single videos are downloaded via the tikwm.com API (no auth, no Cloudflare). Profile scraping uses Playwright to call tikwm's user/posts endpoint from within a browser context to bypass Cloudflare Turnstile. Video bytes are proxied through tikwm's CDN.
-
-**Transcription** — Each video is converted to 16 kHz mono WAV via ffmpeg. Whisper splits audio into 30-second chunks and processes `batch_size` chunks in parallel. SDPA (Scaled Dot-Product Attention) is used across all backends — it's PyTorch-native and equivalent to Flash Attention 2 with zero external dependencies.
-
-**Why float32 on MPS?** — Whisper's cross-attention layers can produce NaN with float16 on Apple's MPS backend in PyTorch ≤2.3. Using float32 is ~1.5x slower but guarantees correct output.
-
-## Project structure
-
-```
-├── app.py                          # Gradio UI + pipeline orchestration
+```text
+├── app.py
+├── web/
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
 ├── reels_transcriber/
-│   ├── device.py                   # Hardware detection (CUDA / MPS / CPU)
-│   ├── transcriber.py              # Whisper pipeline, audio extraction, batched inference
-│   ├── scraper.py                  # Instagram: profile scraper + single reel download
-│   ├── tiktok.py                   # TikTok: profile scraper + single video download
-│   └── formatter.py                # Markdown / JSON / TXT export
-├── requirements.txt
-├── pyproject.toml
-├── LICENSE
-└── README.md
+│   ├── jobs.py
+│   ├── state.py
+│   ├── youtube.py
+│   ├── transcriber.py
+│   ├── scraper.py
+│   ├── tiktok.py
+│   └── formatter.py
+├── runtime_data/        # generated at runtime, ignored by git
+└── tasks/
+    └── stitch_new_transcription/
 ```
 
-## Device support
+## Existing Backend Modules
 
-| Platform | Device | Dtype | Batch size | Notes |
-|---|---|---|---|---|
-| Linux / Windows | NVIDIA GPU (CUDA) | float16 | 8–24 (scales with VRAM) | Fastest |
-| macOS | Apple Silicon (MPS) | float32 | 8 | M1/M2/M3/M4 |
-| Any | CPU | float32 | 4 | Slow but works everywhere |
+- `reels_transcriber/transcriber.py`: Whisper transcription pipeline
+- `reels_transcriber/scraper.py`: Instagram single + profile download
+- `reels_transcriber/tiktok.py`: TikTok single + profile download
+- `reels_transcriber/youtube.py`: YouTube single + collection download
+- `reels_transcriber/jobs.py`: job execution and status transitions
+- `reels_transcriber/state.py`: local persistent workspace state
 
-## Requirements
+## Runtime Caveats
 
-| Dependency | Purpose |
-|---|---|
-| `torch` + `torchaudio` | Inference engine |
-| `transformers` | Whisper pipeline |
-| `gradio` | Web interface |
-| `playwright` | Headless browser for scraping |
-| `requests` | TikTok API calls |
-| `ffmpeg` (system) | Audio extraction |
+- If dependencies such as `torch`, `transformers`, or `playwright` are missing, the shell still loads but transcription jobs fail gracefully with an install message.
+- Uploaded media and generated exports are stored locally under `runtime_data/`.
+- The local API surface is intended for single-user/local workflows, not hardened multi-tenant production.
 
 ## License
 

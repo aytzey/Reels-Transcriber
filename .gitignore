@@ -33,3 +33,4 @@ downloads/
 
 # Temp
 *.log
+runtime_data/

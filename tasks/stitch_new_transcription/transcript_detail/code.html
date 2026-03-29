@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transcript Detail - StoryToText</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Plus+Jakarta+Sans:wght@200..800&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed": "#9defff",
+              "inverse-surface": "#30312e",
+              "on-surface-variant": "#54433c",
+              "primary": "#823b18",
+              "error": "#ba1a1a",
+              "inverse-on-surface": "#f2f1ec",
+              "on-secondary": "#ffffff",
+              "secondary": "#645d58",
+              "surface-container-highest": "#e4e2dd",
+              "on-primary-container": "#ffe1d6",
+              "primary-container": "#a0522d",
+              "surface-container-high": "#eae8e3",
+              "on-error": "#ffffff",
+              "surface-tint": "#944925",
+              "outline-variant": "#dac1b8",
+              "primary-fixed": "#ffdbcd",
+              "secondary-fixed-dim": "#cec5bf",
+              "tertiary": "#005863",
+              "on-surface": "#1b1c19",
+              "on-secondary-fixed": "#1f1b17",
+              "on-primary-fixed-variant": "#76320f",
+              "surface-container-lowest": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#004f59",
+              "on-tertiary-container": "#aef2ff",
+              "surface": "#fbf9f4",
+              "surface-container": "#f0eee9",
+              "error-container": "#ffdad6",
+              "on-error-container": "#93000a",
+              "on-background": "#1b1c19",
+              "outline": "#87736b",
+              "on-secondary-container": "#6a635e",
+              "on-primary-fixed": "#360f00",
+              "background": "#fbf9f4",
+              "inverse-primary": "#ffb596",
+              "tertiary-container": "#007280",
+              "secondary-fixed": "#eae1da",
+              "surface-variant": "#e4e2dd",
+              "surface-dim": "#dcdad5",
+              "tertiary-fixed-dim": "#7fd3e3",
+              "surface-bright": "#fbf9f4",
+              "surface-container-low": "#f5f3ee",
+              "on-secondary-fixed-variant": "#4b4641",
+              "on-tertiary": "#ffffff",
+              "primary-fixed-dim": "#ffb596",
+              "on-tertiary-fixed": "#001f24",
+              "secondary-container": "#eae1da"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"],
+              "display": ["Instrument Serif", "serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .prose-custom {
+            max-width: 65ch;
+            line-height: 1.8;
+            letter-spacing: -0.01em;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-6 bg-surface-container-low w-64 z-40">
+<div class="px-8 mb-10">
+<h1 class="text-lg font-headline italic text-on-surface">StoryToText</h1>
+<p class="text-[0.65rem] uppercase tracking-widest text-on-surface/50 mt-1 font-label">Premium Transcription</p>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 text-on-surface/60 px-4 py-2 hover:bg-surface-container-lowest/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[0.875rem]">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-surface-container-lowest text-primary font-bold rounded-md px-4 py-2 shadow-sm transition-all duration-300" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[0.875rem]">History</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface/60 px-4 py-2 hover:bg-surface-container-lowest/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="text-[0.875rem]">New Transcription</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface/60 px-4 py-2 hover:bg-surface-container-lowest/50 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">key</span>
+<span class="text-[0.875rem]">API Keys</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-primary text-on-primary rounded-xl text-sm font-semibold shadow-lg hover:opacity-90 transition-all active:scale-[0.98]">
+                Upgrade Plan
+            </button>
+<div class="mt-6 pt-6 space-y-2">
+<a class="flex items-center gap-3 text-on-surface/60 px-4 py-1 hover:text-primary transition-colors text-[0.875rem]" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+                    Support
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen">
+<!-- Header Section -->
+<header class="bg-surface-bright pt-12 pb-8 px-12 max-w-6xl mx-auto">
+<div class="flex items-start justify-between gap-12">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-8 h-8 rounded-full bg-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-error-container text-lg" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<span class="text-xs font-label uppercase tracking-[0.2em] text-on-surface-variant/70">YouTube Source</span>
+</div>
+<h2 class="font-display text-5xl text-on-surface leading-tight mb-4">The Future of Generative Storytelling: Navigating the Intersection of AI and Human Creativity</h2>
+<p class="font-label text-sm text-on-surface/50">Created on Oct 24, 2023 • 10:45 AM</p>
+</div>
+<div class="hidden lg:block w-48 aspect-video bg-surface-container-highest rounded-xl overflow-hidden shadow-sm">
+<img alt="Abstract digital art" class="w-full h-full object-cover" data-alt="Abstract fluid digital sculpture with soft organic forms in earthy terracotta and beige tones, clean minimal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAENoIaVhFDnTRjWmVYaxURvPaKrk-oEN7hjrSjI--zx4otQVjSiVDuBR1zV1AeX7e-TudvkdgYY1MXgxqK5VcjlrqY1pyVP9QtEV9gszLSZhJuLbEVohXzYpnW_lbdcHkb9eb1nPhCUKLpSCWd3wmGvV6rLZ6dPbFpwFUtc0nl23N9SyK9DwD5DyOH3UbGNE95JSEEpSPsYmqfD0jJgsiYJh41vzNe4bWb8i0I03XF5pSrWKwnHpTCqOGAfjmLEbm5Be3pPkb-NqY"/>
+</div>
+</div>
+</header>
+<!-- Sticky Action Bar -->
+<div class="sticky top-0 z-30 bg-surface/80 backdrop-blur-md px-12 py-4 border-b border-outline-variant/10">
+<div class="max-w-6xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold shadow-md hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-lg">content_copy</span>
+                        Copy transcript
+                    </button>
+<div class="h-6 w-[1px] bg-outline-variant/30 mx-2"></div>
+<button class="flex items-center gap-2 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-lg text-primary">description</span>
+                        Download TXT
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg text-sm font-medium transition-colors">
+<span class="material-symbols-outlined text-lg text-primary">data_object</span>
+                        Download JSON
+                    </button>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 border border-outline-variant/40 hover:border-primary/40 text-on-surface-variant rounded-lg text-sm font-medium transition-all">
+<span class="material-symbols-outlined text-lg">refresh</span>
+                    Re-run
+                </button>
+</div>
+</div>
+<div class="max-w-6xl mx-auto px-12 py-12 flex flex-col lg:flex-row gap-20">
+<!-- Transcript Content -->
+<article class="flex-1 prose-custom">
+<div class="space-y-10 font-body text-on-surface/90 text-lg">
+<p>
+<span class="font-label text-[0.65rem] text-primary/40 block mb-2 tracking-widest uppercase">00:00 — 02:15</span>
+                        In the landscape of modern media, we're witnessing a paradigm shift that rivals the invention of the printing press. The integration of large language models into our creative workflows isn't just about efficiency—it's about the democratization of narrative structure itself. When we look at how stories were traditionally told, they were linear, static, and bound by the limitations of a single creator's perspective.
+                    </p>
+<p>
+<span class="font-label text-[0.65rem] text-primary/40 block mb-2 tracking-widest uppercase">02:16 — 05:40</span>
+                        Today, however, the "Storyteller" has evolved. We are no longer just writers; we are architects of prompts and curators of generated potential. This transition doesn't diminish the human element; if anything, it amplifies it. The human role shifts from the manual labor of assembly to the high-level philosophy of intent. Why are we telling this story? What emotional resonance are we trying to achieve? The AI handles the syntax, but we handle the soul.
+                    </p>
+<blockquote class="pl-8 border-l-2 border-primary-fixed my-12 italic text-2xl font-headline text-on-surface-variant">
+                        "The machine provides the vocabulary, but the human provides the heartbeat. That is the fundamental contract of the new creative era."
+                    </blockquote>
+<p>
+<span class="font-label text-[0.65rem] text-primary/40 block mb-2 tracking-widest uppercase">05:41 — 08:22</span>
+                        Consider the implications for niche industries. A small technical writer can now produce documentation that reads like an editorial piece. An independent filmmaker can generate script variations that would have taken a room full of writers weeks to iterate. This compression of time creates a new type of creative freedom—the freedom to fail fast and explore the "what if" scenarios that were previously too expensive to entertain.
+                    </p>
+<p>
+<span class="font-label text-[0.65rem] text-primary/40 block mb-2 tracking-widest uppercase">08:23 — 12:45</span>
+                        But with this power comes a unique set of challenges. How do we define authenticity in a world where the lines between synthetic and organic are blurring? The value of content is shifting from the act of creation to the act of verification. In this "Post-Truth" media environment, the credible archivist becomes the most important figure in the room.
+                    </p>
+<p>
+<span class="font-label text-[0.65rem] text-primary/40 block mb-2 tracking-widest uppercase">12:46 — 15:10</span>
+                        As we move forward, the tools we use—like the one transcribing my voice right now—will become invisible. They will become as natural as the ink on paper. We are entering an era of seamless cognitive extension, where the gap between thought and expression is reduced to near-zero.
+                    </p>
+</div>
+</article>
+<!-- Metadata Sidebar -->
+<aside class="w-full lg:w-72 space-y-12">
+<section>
+<h4 class="font-label text-[0.7rem] uppercase tracking-[0.25em] text-on-surface/40 mb-6">Source Metadata</h4>
+<div class="space-y-6">
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Source URL</span>
+<a class="text-sm font-medium text-primary hover:underline truncate" href="#">youtube.com/watch?v=qt...</a>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Duration</span>
+<span class="text-sm font-medium text-on-surface">15m 10s</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Word Count</span>
+<span class="text-sm font-medium text-on-surface">2,482 words</span>
+</div>
+</div>
+</section>
+<section>
+<h4 class="font-label text-[0.7rem] uppercase tracking-[0.25em] text-on-surface/40 mb-6">Analysis Details</h4>
+<div class="space-y-6">
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Detected Language</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary">language</span>
+<span class="text-sm font-medium text-on-surface">English (US)</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Transcription Model</span>
+<span class="text-[0.65rem] font-bold px-2 py-0.5 bg-primary-fixed text-on-primary-fixed-variant rounded w-max uppercase tracking-wider">Premium v4.2</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="text-xs text-on-surface/40">Processing Time</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-secondary">speed</span>
+<span class="text-sm font-medium text-on-surface">1.2 minutes</span>
+</div>
+</div>
+</div>
+</section>
+<section class="p-6 bg-surface-container-low rounded-xl">
+<h4 class="font-label text-[0.7rem] uppercase tracking-[0.25em] text-on-surface/40 mb-4">Export Settings</h4>
+<p class="text-[0.8rem] text-on-surface/60 mb-6 leading-relaxed">Adjust your preferred timestamp interval for future exports.</p>
+<div class="flex items-center justify-between text-xs font-semibold mb-2">
+<span>Frequency</span>
+<span class="text-primary">Every 30s</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3 rounded-full"></div>
+</div>
+</section>
+</aside>
+</div>
+</main>
+<!-- Navigation Overlay logic (Implicit) -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="w-14 h-14 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center shadow-xl hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit</span>
+</button>
+</div>
+</body></html>
