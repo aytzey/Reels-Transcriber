@@ -46,6 +46,18 @@ python app.py
 Open **http://localhost:7860** in your browser.
 The model (~3 GB) downloads automatically on first run.
 
+### Helper scripts (Linux / macOS)
+
+```bash
+./install.sh
+./run.sh
+```
+
+Notes:
+- `install.sh` creates `.venv`, installs dependencies, and downloads Playwright Chromium.
+- On Linux, set `USE_CUDA=0` if you want CPU-only PyTorch even when `nvidia-smi` is present.
+- `ffmpeg` must already be installed on the system.
+
 ### Platform-specific setup
 
 **macOS (Apple Silicon)**
